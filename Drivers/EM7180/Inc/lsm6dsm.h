@@ -17,12 +17,13 @@
 #ifndef LSM6DSM_h
 #define LSM6DSM_h
 
-#include "Arduino.h"
-#include <Wire.h>
+/* Includes */
+#include <stdint.h>
 
-/* LSM6DSM registers
-  http://www.st.com/content/ccc/resource/technical/document/datasheet/76/27/cf/88/c5/03/42/6b/DM00218116.pdf/files/DM00218116.pdf/jcr:content/translations/en.DM00218116.pdf
-*/
+/*
+ * LSM6DSM registers
+ * http://www.st.com/content/ccc/resource/technical/document/datasheet/76/27/cf/88/c5/03/42/6b/DM00218116.pdf/files/DM00218116.pdf/jcr:content/translations/en.DM00218116.pdf
+ */
 #define LSM6DSM_FUNC_CFG_ACCESS           0x01
 #define LSM6DSM_SENSOR_SYNC_TIME_FRAME    0x04
 #define LSM6DSM_SENSOR_SYNC_RES_RATIO     0x05
@@ -156,29 +157,5 @@
 #define GODR_1660Hz  0x08
 #define GODR_3330Hz  0x09
 #define GODR_6660Hz  0x0A
-
-
-class LSM6DSM
-{
-  public:
-  LSM6DSM(uint8_t intPin1, uint8_t intPin2);
-  float getAres(uint8_t Ascale);
-  float getGres(uint8_t Gscale);
-  uint8_t getChipID();
-  void init(uint8_t Ascale, uint8_t Gscale, uint8_t AODR, uint8_t GODR);
-  void offsetBias(float * dest1, float * dest2);
-  void reset();
-  void selfTest();
-  void readData(int16_t * destination);
-  void I2Cscan();
-  void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
-  uint8_t readByte(uint8_t address, uint8_t subAddress);
-  void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
-  private:
-  uint8_t _intPin1;
-  uint8_t _intPin2;
-  float _aRes, _gRes;
-
-};
 
 #endif

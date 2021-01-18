@@ -17,8 +17,8 @@
 #ifndef LPS22HB_h
 #define LPS22HB_h
 
-#include "Arduino.h"
-#include "Wire.h"
+/* Includes */
+#include <stdint.h>
 
 // See LPS22H "MEMS pressure sensor: 260-1260 hPa absolute digital output barometer" Data Sheet
 // http://www.st.com/content/ccc/resource/technical/document/datasheet/bf/c1/4f/23/61/17/44/8a/DM00140895.pdf/files/DM00140895.pdf/jcr:content/translations/en.DM00140895.pdf
@@ -55,22 +55,5 @@
 #define    P_25Hz   0x03;  // 25 Hz output data rate
 #define    P_50Hz   0x04;
 #define    P_75Hz   0x05;
-
-class LPS22H
-{
-  public: 
-  LPS22H(uint8_t intPin);
-  void Init(uint8_t PODR);
-  uint8_t getChipID();
-  uint8_t status();
-  int32_t readAltimeterPressure();
-  int16_t readAltimeterTemperature();
-  void I2Cscan();
-  void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
-  uint8_t readByte(uint8_t address, uint8_t subAddress);
-  void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
-  private:
-  uint8_t   _intPin;
-};
 
 #endif

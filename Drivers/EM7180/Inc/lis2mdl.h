@@ -17,9 +17,10 @@
 #ifndef LIS2MDL_h
 #define LIS2MDL_h
 
-#include "Arduino.h"
-#include <Wire.h>
+/* Includes */
+#include <stdint.h>
 
+/* Definitions */
 //Register map for LIS2MDL'
 // http://www.st.com/content/ccc/resource/technical/document/datasheet/group3/29/13/d1/e0/9a/4d/4f/30/DM00395193/files/DM00395193.pdf/jcr:content/translations/en.DM00395193.pdf
 #define LIS2MDL_OFFSET_X_REG_L        0x45
@@ -52,28 +53,5 @@
 #define MODR_20Hz   0x01
 #define MODR_50Hz   0x02
 #define MODR_100Hz  0x03
-
-
-class LIS2MDL
-{
-  public:
-  LIS2MDL(uint8_t intPin);
-  uint8_t getChipID();
-  void init(uint8_t MODR);
-  void offsetBias(float * dest1, float * dest2);
-  void reset();
-  void selfTest();
-  uint8_t status();
-  void readData(int16_t * destination);
-  int16_t readTemperature();
-  void I2Cscan();
-  void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
-  uint8_t readByte(uint8_t address, uint8_t subAddress);
-  void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
-  private:
-  uint8_t _intPin;
-  float _mRes;
-
-};
 
 #endif
