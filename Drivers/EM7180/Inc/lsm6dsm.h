@@ -1,20 +1,24 @@
-/* 09/23/2017 Copyright Tlera Corporation
-
-    Created by Kris Winer
-
-  This sketch uses SDA/SCL on pins 21/20 (Butterfly default), respectively, and it uses the Butterfly STM32L433CU Breakout Board.
-  The LSM6DSM is a sensor hub with embedded accel and gyro, here used as 6 DoF in a 9 DoF absolute orientation solution.
-
-  Library may be used freely and without limit with attribution.
-
-*/
+/*
+ * lsm6dsm.h
+ * The LSM6DSM is a sensor hub with embedded accelerometer and gyroscope, here
+ * used as 6 DoF in a 10 DoF absolute orientation solution.
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      09/23/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
 #ifndef LSM6DSM_h
 #define LSM6DSM_h
 
 #include "Arduino.h"
 #include <Wire.h>
-#include "I2Cdev.h"
 
 /* LSM6DSM registers
   http://www.st.com/content/ccc/resource/technical/document/datasheet/76/27/cf/88/c5/03/42/6b/DM00218116.pdf/files/DM00218116.pdf/jcr:content/translations/en.DM00218116.pdf
@@ -157,7 +161,7 @@
 class LSM6DSM
 {
   public:
-  LSM6DSM(uint8_t intPin1, uint8_t intPin2, I2Cdev* i2c_bus);
+  LSM6DSM(uint8_t intPin1, uint8_t intPin2);
   float getAres(uint8_t Ascale);
   float getGres(uint8_t Gscale);
   uint8_t getChipID();
@@ -174,7 +178,7 @@ class LSM6DSM
   uint8_t _intPin1;
   uint8_t _intPin2;
   float _aRes, _gRes;
-  I2Cdev* _i2c_bus;
+
 };
 
 #endif

@@ -1,27 +1,33 @@
-/* 09/23/2017 Copyright Tlera Corporation
+/*
+ * lsm6dsm.c
+ * The LSM6DSM is a sensor hub with embedded accelerometer and gyroscope, here
+ * used as 6 DoF in a 10 DoF absolute orientation solution.
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      09/23/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
-    Created by Kris Winer
+#include "lsm6dsm.h"
 
-  This sketch uses SDA/SCL on pins 21/20 (Butterfly default), respectively, and it uses the Butterfly STM32L433CU Breakout Board.
-  The LSM6DSM is a sensor hub with embedded accel and gyro, here used as 6 DoF in a 9 DoF absolute orientation solution.
-
-  Library may be used freely and without limit with attribution.
-
-*/
-
-#include "LSM6DSM.h"
-
-LSM6DSM::LSM6DSM(uint8_t intPin1, uint8_t intPin2, I2Cdev* i2c_bus)
+LSM6DSM::LSM6DSM(uint8_t intPin1, uint8_t intPin2)
 {
+  pinMode(intPin1, INPUT);
   _intPin1 = intPin1;
-  _intPin2 = intPin2;  
-  _i2c_bus = i2c_bus; 
+  pinMode(intPin2, INPUT);
+  _intPin2 = intPin2;   
 }
 
 
 uint8_t LSM6DSM::getChipID()
 {
-  uint8_t c = _i2c_bus->readByte(LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
+  uint8_t c = readByte(LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
   return c;
 }
 
@@ -78,31 +84,31 @@ float LSM6DSM::getGres(uint8_t Gscale) {
 void LSM6DSM::reset()
 {
   // reset device
-  uint8_t temp = _i2c_bus->readByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
+  uint8_t temp = readByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
   delay(100); // Wait for all registers to reset 
 }
 
 
 void LSM6DSM::init(uint8_t Ascale, uint8_t Gscale, uint8_t AODR, uint8_t GODR)
 {
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL, AODR << 4 | Ascale << 2);
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL, AODR << 4 | Ascale << 2);
   
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G, GODR << 4 | Gscale << 2);
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G, GODR << 4 | Gscale << 2);
  
-  uint8_t temp = _i2c_bus->readByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+  uint8_t temp = readByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
   // enable block update (bit 6 = 1), auto-increment registers (bit 2 = 1)
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x40 | 0x04); 
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x40 | 0x04); 
   // by default, interrupts active HIGH, push pull, little endian data 
   // (can be changed by writing to bits 5, 4, and 1, resp to above register)
 
    // enable accel LP2 (bit 7 = 1), set LP2 tp ODR/9 (bit 6 = 1), enable input_composite (bit 3) for low noise
-   _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL, 0x80 | 0x40 | 0x08 );
+   writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL, 0x80 | 0x40 | 0x08 );
 
    // interrupt handling
-    _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
-    _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40);      // enable significant motion interrupts on INT1
-    _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03);      // enable accel/gyro data ready interrupts on INT2  
+    writeByte(LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
+    writeByte(LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40);      // enable significant motion interrupts on INT1
+    writeByte(LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03);      // enable accel/gyro data ready interrupts on INT2  
 }
 
 
@@ -120,35 +126,35 @@ void LSM6DSM::selfTest()
   gyroNom[1]  = temp[2];
   gyroNom[2]  = temp[3];
   
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
   delay(100); // let accel respond
   readData(temp);
   accelPTest[0] = temp[4];
   accelPTest[1] = temp[5];
   accelPTest[2] = temp[6];
 
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
   delay(100); // let accel respond
   readData(temp);
   accelNTest[0] = temp[4];
   accelNTest[1] = temp[5];
   accelNTest[2] = temp[6];
 
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
   delay(100); // let gyro respond
   readData(temp);
   gyroPTest[0] = temp[1];
   gyroPTest[1] = temp[2];
   gyroPTest[2] = temp[3];
 
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
   delay(100); // let gyro respond
   readData(temp);
   gyroNTest[0] = temp[1];
   gyroNTest[1] = temp[2];
   gyroNTest[2] = temp[3];
 
-  _i2c_bus->writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
+  writeByte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
   delay(100); // let accel and gyro respond
 
   Serial.println("Accel Self Test:");
@@ -214,7 +220,7 @@ void LSM6DSM::offsetBias(float * dest1, float * dest2)
 void LSM6DSM::readData(int16_t * destination)
 {
   uint8_t rawData[14];  // x/y/z accel register data stored here
-  _i2c_bus->readBytes(LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, 14, &rawData[0]);  // Read the 14 raw data registers into data array
+  readBytes(LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, 14, &rawData[0]);  // Read the 14 raw data registers into data array
   destination[0] = ((int16_t)rawData[1] << 8) | rawData[0] ;  // Turn the MSB and LSB into a signed 16-bit value
   destination[1] = ((int16_t)rawData[3] << 8) | rawData[2] ;  
   destination[2] = ((int16_t)rawData[5] << 8) | rawData[4] ; 
@@ -223,3 +229,66 @@ void LSM6DSM::readData(int16_t * destination)
   destination[5] = ((int16_t)rawData[11] << 8) | rawData[10] ;  
   destination[6] = ((int16_t)rawData[13] << 8) | rawData[12] ; 
 }
+
+// I2C scan function
+void LSM6DSM::I2Cscan()
+{
+// scan for i2c devices
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmission to see if
+    // a device did acknowledge to the address.
+//    Wire.beginTransmission(address);
+//    error = Wire.endTransmission();
+      error = Wire.transfer(address, NULL, 0, NULL, 0);
+      
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+    
+}
+
+// I2C read/write functions for the LSM6DSM
+
+        void LSM6DSM::writeByte(uint8_t address, uint8_t subAddress, uint8_t data) {
+        uint8_t temp[2];
+        temp[0] = subAddress;
+        temp[1] = data;
+        Wire.transfer(address, &temp[0], 2, NULL, 0); 
+        }
+
+        uint8_t LSM6DSM::readByte(uint8_t address, uint8_t subAddress) {
+        uint8_t temp[1];
+        Wire.transfer(address, &subAddress, 1, &temp[0], 1);
+        return temp[0];
+        }
+
+        void LSM6DSM::readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest) {
+        Wire.transfer(address, &subAddress, 1, dest, count); 
+        }

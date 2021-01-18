@@ -1,26 +1,31 @@
-/* 09/23/2017 Copyright Tlera Corporation
+/*
+ * lis2mdl.c
+ * The LIS2MDL is a low power magnetometer, here used as 3 DoF in a 10 DoF
+ * absolute orientation solution.
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      09/23/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
-    Created by Kris Winer
+#include "lis2mdl.h"
 
-  This sketch uses SDA/SCL on pins 21/20 (Butterfly default), respectively, and it uses the Butterfly STM32L433CU Breakout Board.
-  The LIS2MDL is a low power magnetometer, here used as 3 DoF in a 9 DoF absolute orientation solution.
-
-  Library may be used freely and without limit with attribution.
-
-*/
-
-#include "LIS2MDL.h"
-
-LIS2MDL::LIS2MDL(uint8_t intPin, I2Cdev* i2c_bus)
+LIS2MDL::LIS2MDL(uint8_t intPin)
 {
+  pinMode(intPin, INPUT);
   _intPin = intPin;
-  _i2c_bus = i2c_bus;
 }
 
 
 uint8_t LIS2MDL::getChipID()
 {
-  uint8_t c = _i2c_bus->readByte(LIS2MDL_ADDRESS, LIS2MDL_WHO_AM_I);
+  uint8_t c = readByte(LIS2MDL_ADDRESS, LIS2MDL_WHO_AM_I);
   return c;
 }
 
@@ -28,30 +33,32 @@ uint8_t LIS2MDL::getChipID()
 void LIS2MDL::reset()
 {
   // reset device
-  uint8_t temp = _i2c_bus->readByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A);
-  _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x20); // Set bit 5 to 1 to reset LIS2MDL
+  uint8_t temp = readByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A);
+  writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x20); // Set bit 5 to 1 to reset LIS2MDL
   delay(1);
-  _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
+  writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
   delay(100); // Wait for all registers to reset 
 }
 
 void LIS2MDL::init(uint8_t MODR)
 {
+ 
  // enable temperature compensation (bit 7 == 1), continuous mode (bits 0:1 == 00)
- _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, 0x80 | MODR<<2);  
+ writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, 0x80 | MODR<<2);  
 
  // enable low pass filter (bit 0 == 1), set to ODR/4
- _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);  
+ writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);  
 
  // enable data ready on interrupt pin (bit 0 == 1), enable block data read (bit 4 == 1)
- _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, 0x01 | 0x10);  
+ writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, 0x01 | 0x10);  
+
 }
 
 
 uint8_t LIS2MDL::status()
 {
   // Read the status register of the altimeter  
-  uint8_t temp = _i2c_bus->readByte(LIS2MDL_ADDRESS, LIS2MDL_STATUS_REG);   
+  uint8_t temp = readByte(LIS2MDL_ADDRESS, LIS2MDL_STATUS_REG);   
   return temp;
 }
 
@@ -59,7 +66,7 @@ uint8_t LIS2MDL::status()
 void LIS2MDL::readData(int16_t * destination)
 {
   uint8_t rawData[6];  // x/y/z mag register data stored here
-  _i2c_bus->readBytes(LIS2MDL_ADDRESS, (0x80 | LIS2MDL_OUTX_L_REG), 8, &rawData[0]);  // Read the 6 raw data registers into data array
+  readBytes(LIS2MDL_ADDRESS, (0x80 | LIS2MDL_OUTX_L_REG), 8, &rawData[0]);  // Read the 6 raw data registers into data array
 
   destination[0] = ((int16_t)rawData[1] << 8) | rawData[0] ;       // Turn the MSB and LSB into a signed 16-bit value
   destination[1] = ((int16_t)rawData[3] << 8) | rawData[2] ;  
@@ -70,7 +77,8 @@ void LIS2MDL::readData(int16_t * destination)
 int16_t LIS2MDL::readTemperature()
 {
   uint8_t rawData[2];  // x/y/z mag register data stored here
-  _i2c_bus->readBytes(LIS2MDL_ADDRESS, (0x80 | LIS2MDL_TEMP_OUT_L_REG), 2, &rawData[0]);  // Read the 8 raw data registers into data array
+  readBytes(LIS2MDL_ADDRESS, (0x80 | LIS2MDL_TEMP_OUT_L_REG), 2, &rawData[0]);  // Read the 8 raw data registers into data array
+
   int16_t temp = ((int16_t)rawData[1] << 8) | rawData[0] ;       // Turn the MSB and LSB into a signed 16-bit value
   return temp;
 }
@@ -142,8 +150,8 @@ void LIS2MDL::selfTest()
   magNom[1] = (float) sum[1] / 50.0f;
   magNom[2] = (float) sum[2] / 50.0f;
   
-  uint8_t c = _i2c_bus->readByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C);
-  _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c | 0x02); // enable self test
+  uint8_t c = readByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C);
+  writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c | 0x02); // enable self test
   delay(100); // let mag respond
   
   sum[0] = 0;
@@ -162,7 +170,7 @@ void LIS2MDL::selfTest()
   magTest[1] = (float) sum[1] / 50.0f;
   magTest[2] = (float) sum[2] / 50.0f;
   
-  _i2c_bus->writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c); // return to previous settings/normal mode
+  writeByte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c); // return to previous settings/normal mode
   delay(100); // let mag respond
 
   Serial.println("Mag Self Test:");
@@ -173,3 +181,69 @@ void LIS2MDL::selfTest()
   delay(2000);  // give some time to read the screen
 }
 
+
+// I2C scan function
+void LIS2MDL::I2Cscan()
+{
+// scan for i2c devices
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmission to see if
+    // a device did acknowledge to the address.
+//    Wire.beginTransmission(address);
+//    error = Wire.endTransmission();
+      error = Wire.transfer(address, NULL, 0, NULL, 0);
+      
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+    
+}
+
+
+// I2C read/write functions for the LIS2MDL
+
+        void LIS2MDL::writeByte(uint8_t address, uint8_t subAddress, uint8_t data) {
+        uint8_t temp[2];
+        temp[0] = subAddress;
+        temp[1] = data;
+        Wire.transfer(address, &temp[0], 2, NULL, 0); 
+        }
+
+
+        uint8_t LIS2MDL::readByte(uint8_t address, uint8_t subAddress) {
+        uint8_t temp[1];
+        Wire.transfer(address, &subAddress, 1, &temp[0], 1);
+        return temp[0];
+        }
+        
+
+        void LIS2MDL::readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest) {
+        Wire.transfer(address, &subAddress, 1, dest, count); 
+        }

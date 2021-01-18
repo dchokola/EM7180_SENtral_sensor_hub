@@ -1,13 +1,18 @@
-/* 09/23/2017 Copyright Tlera Corporation
-
-    Created by Kris Winer
-
-  This sketch uses SDA/SCL on pins 21/20 (Butterfly default), respectively, and it uses the Butterfly STM32L433CU Breakout Board.
-  The LPS22HB is a low power barometerr.
-
-  Library may be used freely and without limit with attribution.
-
-*/
+/*
+ * lps22hb.h
+ * The LPS22HB is a low power barometer, here used as 1 DoF in a 10 DoF
+ * absolute orientation solution.
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      09/23/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
 #ifndef LPS22HB_h
 #define LPS22HB_h

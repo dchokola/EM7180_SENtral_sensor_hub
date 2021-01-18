@@ -1,8 +1,22 @@
-#ifndef USFS_h
-#define USFSh_h
+/*
+ * em7180.h
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      06/29/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
-#include "Arduino.h"
-#include "Wire.h"   
+#ifndef EM7180_H_
+#define EM7180_H_
+
+/* Includes */
+#include <stdint.h>
 
 // See MS5637-02BA03 Low Voltage Barometric Pressure Sensor Data Sheet
 #define MS5637_RESET      0x1E
@@ -10,7 +24,7 @@
 #define MS5637_CONVERT_D2 0x50
 #define MS5637_ADC_READ   0x00
 
-// See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
+// See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in
 // above document; the MPU9250 and MPU9150 are virtually identical but the latter has a different register map
 //
 //Magnetometer Registers
@@ -32,8 +46,8 @@
 #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
 
-#define SELF_TEST_X_GYRO 0x00                  
-#define SELF_TEST_Y_GYRO 0x01                                                                          
+#define SELF_TEST_X_GYRO 0x00
+#define SELF_TEST_Y_GYRO 0x01
 #define SELF_TEST_Z_GYRO 0x02
 
 /*#define X_FINE_GAIN      0x03 // [7:0] fine gain
@@ -47,7 +61,7 @@
 #define ZA_OFFSET_L_TC   0x0B */
 
 #define SELF_TEST_X_ACCEL 0x0D
-#define SELF_TEST_Y_ACCEL 0x0E    
+#define SELF_TEST_Y_ACCEL 0x0E
 #define SELF_TEST_Z_ACCEL 0x0F
 
 #define SELF_TEST_A      0x10
@@ -63,15 +77,15 @@
 #define GYRO_CONFIG      0x1B
 #define ACCEL_CONFIG     0x1C
 #define ACCEL_CONFIG2    0x1D
-#define LP_ACCEL_ODR     0x1E   
-#define WOM_THR          0x1F   
+#define LP_ACCEL_ODR     0x1E
+#define WOM_THR          0x1F
 
 #define MOT_DUR          0x20  // Duration counter threshold for motion interrupt generation, 1 kHz rate, LSB = 1 ms
 #define ZMOT_THR         0x21  // Zero-motion detection threshold bits [7:0]
 #define ZRMOT_DUR        0x22  // Duration counter threshold for zero motion interrupt generation, 16 Hz rate, LSB = 64 ms
 
 #define FIFO_EN          0x23
-#define I2C_MST_CTRL     0x24   
+#define I2C_MST_CTRL     0x24
 #define I2C_SLV0_ADDR    0x25
 #define I2C_SLV0_REG     0x26
 #define I2C_SLV0_CTRL    0x27
@@ -147,7 +161,7 @@
 #define DMP_RW_PNT       0x6E  // Set read/write pointer to a specific start address in specified DMP bank
 #define DMP_REG          0x6F  // Register in DMP from which to read or to which to write
 #define DMP_REG_1        0x70
-#define DMP_REG_2        0x71 
+#define DMP_REG_2        0x71
 #define FIFO_COUNTH      0x72
 #define FIFO_COUNTL      0x73
 #define FIFO_R_W         0x74
@@ -183,7 +197,7 @@
 #define EM7180_BaroTIME           0x2C  // start of two-byte MS5637 pressure timestamp, 16-bit unsigned
 #define EM7180_Temp               0x2E  // start of two-byte MS5637 temperature data, 16-bit signed interger
 #define EM7180_TempTIME           0x30  // start of two-byte MS5637 temperature timestamp, 16-bit unsigned
-#define EM7180_QRateDivisor       0x32  // uint8_t 
+#define EM7180_QRateDivisor       0x32  // uint8_t
 #define EM7180_EnableEvents       0x33
 #define EM7180_HostControl        0x34
 #define EM7180_EventStatus        0x35
@@ -221,10 +235,10 @@
 #define EM7180_RevisionID         0x91
 #define EM7180_RunStatus          0x92
 #define EM7180_UploadAddress      0x94 // uint16_t registers 0x94 (MSB)-5(LSB)
-#define EM7180_UploadData         0x96  
+#define EM7180_UploadData         0x96
 #define EM7180_CRCHost            0x97  // uint32_t from registers 0x97-9A
-#define EM7180_ResetRequest       0x9B   
-#define EM7180_PassThruStatus     0x9E   
+#define EM7180_ResetRequest       0x9B
+#define EM7180_PassThruStatus     0x9E
 #define EM7180_PassThruControl    0xA0
 #define EM7180_ACC_LPF_BW         0x5B  //Register GP36
 #define EM7180_GYRO_LPF_BW        0x5C  //Register GP37
@@ -261,7 +275,7 @@
 
 class USFS
 {
-  public: 
+  public:
   USFS(uint8_t intPin, bool passThru);
   float getAres(uint8_t Ascale);
   float getGres(uint8_t Gscale);
@@ -325,4 +339,4 @@ class USFS
   float _Ki;
 };
 
-#endif
+#endif /* EM7180_H_ */

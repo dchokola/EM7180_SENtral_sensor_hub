@@ -1,15 +1,20 @@
-/* 09/23/2017 Copyright Tlera Corporation
+/*
+ * lps22hb.c
+ * The LPS22HB is a low power barometer, here used as 1 DoF in a 10 DoF
+ * absolute orientation solution.
+ *
+ *  Created on: Jan 18, 2021
+ *      Author: Daniel Peter Chokola
+ *
+ *  Adapted From:
+ *      EM7180_LSM6DSM_LIS2MDL_LPS22HB_Butterfly
+ *      by: Kris Winer
+ *      09/23/2017 Copyright Tlera Corporation
+ *
+ *  Library may be used freely and without limit with attribution.
+ */
 
-    Created by Kris Winer
-
-  This sketch uses SDA/SCL on pins 21/20 (Butterfly default), respectively, and it uses the Butterfly STM32L433CU Breakout Board.
-  The LPS22HB is a low power barometerr.
-
-  Library may be used freely and without limit with attribution.
-
-*/
-
-#include "LPS22HB.h"
+#include "lps22hb.h"
 #include "Wire.h"
 
 LPS22H::LPS22H(uint8_t intPin)
