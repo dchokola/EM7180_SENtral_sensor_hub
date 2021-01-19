@@ -19,6 +19,7 @@
 
 /* Includes */
 #include <stdint.h>
+#include "i2c.h"
 
 /* Definitions */
 //Register map for LIS2MDL'
@@ -53,5 +54,19 @@
 #define MODR_20Hz   0x01
 #define MODR_50Hz   0x02
 #define MODR_100Hz  0x03
+
+#define MFS_14BITS  0  // 0.6 mG per LSB
+#define MFS_16BITS  1  // 0.15 mG per LSB
+
+/* Data Structures */
+typedef struct lis2mdl_s
+{
+	I2C_HandleTypeDef *hi2c;
+	uint8_t m_odr;
+} lis2mdl_t;
+
+/* Function Prototypes */
+void lis2mdl_init(lis2mdl_t *lis2mdl, I2C_HandleTypeDef *hi2c, uint8_t m_odr);
+void lis2mdl_config(lis2mdl_t *lis2mdl);
 
 #endif

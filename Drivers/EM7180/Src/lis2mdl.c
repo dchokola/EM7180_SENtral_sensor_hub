@@ -16,11 +16,10 @@
 
 /* Includes */
 #include <stdint.h>
+#include "em7180_common.h"
 #include "lis2mdl.h"
 
 /* Private Global Variables */
-static uint8_t _intPin;
-static float _mRes;
 
 /* Function Prototypes */
 static void lis2mdl_write_byte(uint8_t address, uint8_t subAddress,
@@ -30,10 +29,29 @@ static void lis2mdl_read(uint8_t address, uint8_t subAddress, uint8_t count,
                          uint8_t *dest);
 
 /* Function Definitions */
-lis2mdl_new(uint8_t pin)
+void lis2mdl_init(lis2mdl_t *lis2mdl, I2C_HandleTypeDef *hi2c, uint8_t m_odr)
 {
-	/*	pinMode(pin, INPUT); */
-	_intPin = pin;
+	if(!lis2mdl)
+	{
+		return;
+	}
+
+	lis2mdl->hi2c = hi2c;
+	lis2mdl->m_odr = m_odr;
+}
+
+void lis2mdl_config(lis2mdl_t *lis2mdl)
+{
+	// enable temperature compensation (bit 7 == 1), continuous mode (bits 0:1 == 00)
+	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A,
+	                   0x80 | lis2mdl->m_odr << 2);
+
+	// enable low pass filter (bit 0 == 1), set to ODR/4
+	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);
+
+	// enable data ready on interrupt pin (bit 0 == 1), enable block data read (bit 4 == 1)
+	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, 0x01 | 0x10);
+
 }
 
 uint8_t lis2mdl_chip_id_get()
@@ -50,20 +68,6 @@ void lis2mdl_reset()
 	HAL_Delay(1);
 	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
 	HAL_Delay(100); // Wait for all registers to reset
-}
-
-void lis2mdl_init(uint8_t MODR)
-{
-
-	// enable temperature compensation (bit 7 == 1), continuous mode (bits 0:1 == 00)
-	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, 0x80 | MODR << 2);
-
-	// enable low pass filter (bit 0 == 1), set to ODR/4
-	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);
-
-	// enable data ready on interrupt pin (bit 0 == 1), enable block data read (bit 4 == 1)
-	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, 0x01 | 0x10);
-
 }
 
 uint8_t lis2mdl_status()
@@ -99,7 +103,7 @@ void lis2mdl_offset_bias(float *dest1, float *dest2)
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
 	int16_t mag_max[3] = { -32767, -32767, -32767 }, mag_min[3] =
 	    { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
-	float _mRes = 0.0015f;
+	float m_res = 0.0015f;
 
 	/* Serial.println("Calculate mag offset bias: move all around to sample the complete response surface!"); */
 	HAL_Delay(4000);
@@ -121,15 +125,15 @@ void lis2mdl_offset_bias(float *dest1, float *dest2)
 		HAL_Delay(12);
 	}
 
-	_mRes = 0.0015f; // fixed sensitivity
+	m_res = 0.0015f; // fixed sensitivity
 	// Get hard iron correction
 	mag_bias[0] = (mag_max[0] + mag_min[0]) / 2; // get average x mag bias in counts
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2; // get average y mag bias in counts
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2; // get average z mag bias in counts
 
-	dest1[0] = (float) mag_bias[0] * _mRes; // save mag biases in G for main program
-	dest1[1] = (float) mag_bias[1] * _mRes;
-	dest1[2] = (float) mag_bias[2] * _mRes;
+	dest1[0] = (float) mag_bias[0] * m_res; // save mag biases in G for main program
+	dest1[1] = (float) mag_bias[1] * m_res;
+	dest1[2] = (float) mag_bias[2] * m_res;
 
 	// Get soft iron correction estimate
 	mag_scale[0] = (mag_max[0] - mag_min[0]) / 2; // get average x axis max chord length in counts
@@ -152,7 +156,7 @@ void lis2mdl_self_test()
 	float magTest[3] = { 0., 0., 0. };
 	float magNom[3] = { 0., 0., 0. };
 	int32_t sum[3] = { 0, 0, 0 };
-	float _mRes = 0.0015f;
+	float m_res = 0.0015f;
 
 	// first, get average response with self test disabled
 	for(int ii = 0; ii < 50; ii++)
@@ -193,12 +197,12 @@ void lis2mdl_self_test()
 
 	/* Serial.println("Mag Self Test:"); */
 	/* Serial.print("Mx results:"); */
-	/* Serial.print((magTest[0] - magNom[0]) * _mRes * 1000.0); */
+	/* Serial.print((magTest[0] - magNom[0]) * m_res * 1000.0); */
 	/* Serial.println(" mG"); */
 	/* Serial.print("My results:"); */
-	/* Serial.println((magTest[0] - magNom[0]) * _mRes * 1000.0); */
+	/* Serial.println((magTest[0] - magNom[0]) * m_res * 1000.0); */
 	/* Serial.print("Mz results:"); */
-	/* Serial.println((magTest[1] - magNom[1]) * _mRes * 1000.0); */
+	/* Serial.println((magTest[1] - magNom[1]) * m_res * 1000.0); */
 	/* Serial.println("Should be between 15 and 500 mG"); */
 	HAL_Delay(2000);  // give some time to read the screen
 }

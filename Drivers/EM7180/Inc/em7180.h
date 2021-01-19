@@ -17,6 +17,10 @@
 
 /* Includes */
 #include <stdint.h>
+#include "i2c.h"
+#include "lsm6dsm.h"
+#include "lps22hb.h"
+#include "lis2mdl.h"
 
 /* Definitions */
 /*
@@ -87,28 +91,32 @@
 #define EM7180_ResetRequest       0x9B
 #define EM7180_PassThruStatus     0x9E
 #define EM7180_PassThruControl    0xA0
-#define EM7180_ACC_LPF_BW         0x5B  //Register GP36
-#define EM7180_GYRO_LPF_BW        0x5C  //Register GP37
-#define EM7180_BARO_LPF_BW        0x5D  //Register GP38
 
 #define EM7180_ADDRESS           0x28   // Address of the EM7180 SENtral sensor hub
 #define M24512DFM_DATA_ADDRESS   0x50   // Address of the 500 page M24512DFM EEPROM data buffer, 1024 bits (128 8-bit bytes) per page
 #define M24512DFM_IDPAGE_ADDRESS 0x58   // Address of the single M24512DFM lockable EEPROM ID page
 
-#define  AFS_2G  0
-#define  AFS_4G  1
-#define  AFS_8G  2
-#define  AFS_16G 3
-
-#define  GFS_250DPS  0
-#define  GFS_500DPS  1
-#define  GFS_1000DPS 2
-#define  GFS_2000DPS 3
-
-#define  MFS_14BITS  0  // 0.6 mG per LSB
-#define  MFS_16BITS  1  // 0.15 mG per LSB
+/* Data Structures */
+typedef struct em7180_s
+{
+	I2C_HandleTypeDef *hi2c;
+	lsm6dsm_t *lsm6dsm;
+	uint16_t acc_fs;
+	uint16_t gyro_fs;
+	uint16_t mag_fs;
+	uint8_t q_rate_div;
+	uint8_t mag_rate;
+	uint8_t acc_rate;
+	uint8_t gyro_rate;
+	uint8_t baro_rate;
+} em7180_t;
 
 /* Function Prototypes */
+void em7180_init(em7180_t *em7180, lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c1,
+                 uint16_t acc_fs, uint16_t gyro_fs, uint16_t mag_fs,
+                 uint8_t q_rate_div, uint8_t mag_rate, uint8_t acc_rate,
+                 uint8_t gyro_rate, uint8_t baro_rate);
+void em7180_config(em7180_t *em7180);
 void em7180_gyro_set_fs(uint16_t gyro_fs);
 void em7180_mag_acc_set_fs(uint16_t mag_fs, uint16_t acc_fs);
 void em7180_set_integer_param(uint8_t param, uint32_t param_val);

@@ -19,7 +19,9 @@
 
 /* Includes */
 #include <stdint.h>
+#include "i2c.h"
 
+/* Definitions */
 /*
  * LSM6DSM registers
  * http://www.st.com/content/ccc/resource/technical/document/datasheet/76/27/cf/88/c5/03/42/6b/DM00218116.pdf/files/DM00218116.pdf/jcr:content/translations/en.DM00218116.pdf
@@ -125,13 +127,12 @@
 
 #define LSM6DSM_ADDRESS           0x6A   // Address of LSM6DSM accel/gyro when ADO = 0
 
-
 #define AFS_2G  0x00
 #define AFS_4G  0x02
 #define AFS_8G  0x03
 #define AFS_16G 0x01
 
-#define GFS_245DPS  0x00
+#define GFS_250DPS  0x00
 #define GFS_500DPS  0x01
 #define GFS_1000DPS 0x02
 #define GFS_2000DPS 0x03
@@ -157,5 +158,20 @@
 #define GODR_1660Hz  0x08
 #define GODR_3330Hz  0x09
 #define GODR_6660Hz  0x0A
+
+/* Data Structures */
+typedef struct lsm6dsm_s
+{
+	I2C_HandleTypeDef *hi2c;
+	uint8_t ascale;
+	uint8_t gscale;
+	uint8_t a_odr;
+	uint8_t g_odr;
+} lsm6dsm_t;
+
+/* Function Prototypes */
+void lsm6dsm_init(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c, uint8_t ascale,
+                  uint8_t gscale, uint8_t a_odr, uint8_t g_odr);
+void lsm6dsm_config(lsm6dsm_t *lsm6dsm);
 
 #endif
