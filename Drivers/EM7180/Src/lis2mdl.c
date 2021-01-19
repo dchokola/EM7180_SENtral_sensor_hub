@@ -32,7 +32,7 @@ static void lis2mdl_read(uint8_t address, uint8_t subAddress, uint8_t count,
 /* Function Definitions */
 lis2mdl_new(uint8_t pin)
 {
-	pinMode(pin, INPUT);
+	/*	pinMode(pin, INPUT); */
 	_intPin = pin;
 }
 
@@ -47,9 +47,9 @@ void lis2mdl_reset()
 	// reset device
 	uint8_t temp = lis2mdl_read_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A);
 	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x20); // Set bit 5 to 1 to reset LIS2MDL
-	delay(1);
+	HAL_Delay(1);
 	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
-	delay(100); // Wait for all registers to reset 
+	HAL_Delay(100); // Wait for all registers to reset
 }
 
 void lis2mdl_init(uint8_t MODR)
@@ -101,9 +101,8 @@ void lis2mdl_offset_bias(float *dest1, float *dest2)
 	    { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
 	float _mRes = 0.0015f;
 
-	Serial.println(
-	    "Calculate mag offset bias: move all around to sample the complete response surface!");
-	delay(4000);
+	/* Serial.println("Calculate mag offset bias: move all around to sample the complete response surface!"); */
+	HAL_Delay(4000);
 
 	for(int ii = 0; ii < 4000; ii++)
 	{
@@ -111,11 +110,15 @@ void lis2mdl_offset_bias(float *dest1, float *dest2)
 		for(int jj = 0; jj < 3; jj++)
 		{
 			if(mag_temp[jj] > mag_max[jj])
+			{
 				mag_max[jj] = mag_temp[jj];
+			}
 			if(mag_temp[jj] < mag_min[jj])
+			{
 				mag_min[jj] = mag_temp[jj];
+			}
 		}
-		delay(12);
+		HAL_Delay(12);
 	}
 
 	_mRes = 0.0015f; // fixed sensitivity
@@ -140,7 +143,7 @@ void lis2mdl_offset_bias(float *dest1, float *dest2)
 	dest2[1] = avg_rad / ((float) mag_scale[1]);
 	dest2[2] = avg_rad / ((float) mag_scale[2]);
 
-	Serial.println("Mag Calibration done!");
+	/* Serial.println("Mag Calibration done!"); */
 }
 
 void lis2mdl_self_test()
@@ -158,7 +161,7 @@ void lis2mdl_self_test()
 		sum[0] += temp[0];
 		sum[1] += temp[1];
 		sum[2] += temp[2];
-		delay(50);
+		HAL_Delay(50);
 	}
 
 	magNom[0] = (float) sum[0] / 50.0f;
@@ -167,7 +170,7 @@ void lis2mdl_self_test()
 
 	uint8_t c = lis2mdl_read_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C);
 	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c | 0x02); // enable self test
-	delay(100); // let mag respond
+	HAL_Delay(100); // let mag respond
 
 	sum[0] = 0;
 	sum[1] = 0;
@@ -178,7 +181,7 @@ void lis2mdl_self_test()
 		sum[0] += temp[0];
 		sum[1] += temp[1];
 		sum[2] += temp[2];
-		delay(50);
+		HAL_Delay(50);
 	}
 
 	magTest[0] = (float) sum[0] / 50.0f;
@@ -186,18 +189,18 @@ void lis2mdl_self_test()
 	magTest[2] = (float) sum[2] / 50.0f;
 
 	lis2mdl_write_byte(LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c); // return to previous settings/normal mode
-	delay(100); // let mag respond
+	HAL_Delay(100); // let mag respond
 
-	Serial.println("Mag Self Test:");
-	Serial.print("Mx results:");
-	Serial.print((magTest[0] - magNom[0]) * _mRes * 1000.0);
-	Serial.println(" mG");
-	Serial.print("My results:");
-	Serial.println((magTest[0] - magNom[0]) * _mRes * 1000.0);
-	Serial.print("Mz results:");
-	Serial.println((magTest[1] - magNom[1]) * _mRes * 1000.0);
-	Serial.println("Should be between 15 and 500 mG");
-	delay(2000);  // give some time to read the screen
+	/* Serial.println("Mag Self Test:"); */
+	/* Serial.print("Mx results:"); */
+	/* Serial.print((magTest[0] - magNom[0]) * _mRes * 1000.0); */
+	/* Serial.println(" mG"); */
+	/* Serial.print("My results:"); */
+	/* Serial.println((magTest[0] - magNom[0]) * _mRes * 1000.0); */
+	/* Serial.print("Mz results:"); */
+	/* Serial.println((magTest[1] - magNom[1]) * _mRes * 1000.0); */
+	/* Serial.println("Should be between 15 and 500 mG"); */
+	HAL_Delay(2000);  // give some time to read the screen
 }
 
 // I2C read/write functions for the LIS2MDL
@@ -208,18 +211,18 @@ static void lis2mdl_write_byte(uint8_t address, uint8_t subAddress,
 	uint8_t temp[2];
 	temp[0] = subAddress;
 	temp[1] = data;
-	Wire.transfer(address, &temp[0], 2, NULL, 0);
+	/* Wire.transfer(address, &temp[0], 2, NULL, 0); */
 }
 
 static uint8_t lis2mdl_read_byte(uint8_t address, uint8_t subAddress)
 {
 	uint8_t temp[1];
-	Wire.transfer(address, &subAddress, 1, &temp[0], 1);
+	/* Wire.transfer(address, &subAddress, 1, &temp[0], 1); */
 	return temp[0];
 }
 
 static void lis2mdl_read(uint8_t address, uint8_t subAddress, uint8_t count,
                          uint8_t *dest)
 {
-	Wire.transfer(address, &subAddress, 1, dest, count);
+	/* Wire.transfer(address, &subAddress, 1, dest, count); */
 }

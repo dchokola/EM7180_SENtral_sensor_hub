@@ -15,6 +15,7 @@
 /* Includes */
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "em7180.h"
 
 /* Private Global Variables */
@@ -49,7 +50,7 @@ static void em7180_read(uint8_t address, uint8_t subAddress, uint8_t count,
 /* Function Definitions */
 em7180_new(uint8_t pin, bool passthru)
 {
-	pinMode(pin, INPUT);
+	/*	pinMode(pin, INPUT); */
 	_intPin = pin;
 	_passThru = passthru;
 }
@@ -59,23 +60,23 @@ void em7180_chip_id_get()
 	// Read SENtral device information
 	uint16_t ROM1 = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ROMVersion1);
 	uint16_t ROM2 = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ROMVersion2);
-	Serial.print("EM7180 ROM Version: 0x");
-	Serial.print(ROM1, HEX);
-	Serial.println(ROM2, HEX);
-	Serial.println("Should be: 0xE609");
+	/* Serial.print("EM7180 ROM Version: 0x"); */
+	/* Serial.print(ROM1, HEX); */
+	/* Serial.println(ROM2, HEX); */
+	/* Serial.println("Should be: 0xE609"); */
 	uint16_t RAM1 = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_RAMVersion1);
 	uint16_t RAM2 = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_RAMVersion2);
-	Serial.print("EM7180 RAM Version: 0x");
-	Serial.print(RAM1);
-	Serial.println(RAM2);
+	/* Serial.print("EM7180 RAM Version: 0x"); */
+	/* Serial.print(RAM1); */
+	/* Serial.println(RAM2); */
 	uint8_t PID = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ProductID);
-	Serial.print("EM7180 ProductID: 0x");
-	Serial.print(PID, HEX);
-	Serial.println(" Should be: 0x80");
+	/* Serial.print("EM7180 ProductID: 0x"); */
+	/* Serial.print(PID, HEX); */
+	/* Serial.println(" Should be: 0x80"); */
 	uint8_t RID = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_RevisionID);
-	Serial.print("EM7180 RevisionID: 0x");
-	Serial.print(RID, HEX);
-	Serial.println(" Should be: 0x02");
+	/* Serial.print("EM7180 RevisionID: 0x"); */
+	/* Serial.print(RID, HEX); */
+	/* Serial.println(" Should be: 0x02"); */
 }
 
 void em7180_load_fw_from_eeprom()
@@ -84,55 +85,92 @@ void em7180_load_fw_from_eeprom()
 	uint8_t featureflag = lsm6dsm_read_byte(EM7180_ADDRESS,
 	EM7180_FeatureFlags);
 	if(featureflag & 0x01)
-		Serial.println("A barometer is installed");
+	{
+		/* Serial.println("A barometer is installed"); */
+	}
 	if(featureflag & 0x02)
-		Serial.println("A humidity sensor is installed");
+	{
+		/* Serial.println("A humidity sensor is installed"); */
+	}
 	if(featureflag & 0x04)
-		Serial.println("A temperature sensor is installed");
+	{
+		/* Serial.println("A temperature sensor is installed"); */
+	}
 	if(featureflag & 0x08)
-		Serial.println("A custom sensor is installed");
+	{
+		/* Serial.println("A custom sensor is installed"); */
+	}
 	if(featureflag & 0x10)
-		Serial.println("A second custom sensor is installed");
+	{
+		/* Serial.println("A second custom sensor is installed"); */
+	}
 	if(featureflag & 0x20)
-		Serial.println("A third custom sensor is installed");
+	{
+		/* Serial.println("A third custom sensor is installed"); */
+	}
 
-	delay(1000); // give some time to read the screen
+	HAL_Delay(1000); // give some time to read the screen
 
 	// Check SENtral status, make sure EEPROM upload of firmware was accomplished
-	byte STAT = (lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x01);
+	uint8_t STAT = (lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus)
+	    & 0x01);
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x01)
-		Serial.println("EEPROM detected on the sensor bus!");
+	{
+		/* Serial.println("EEPROM detected on the sensor bus!"); */
+	}
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x02)
-		Serial.println("EEPROM uploaded config file!");
+	{
+		/* Serial.println("EEPROM uploaded config file!"); */
+	}
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x04)
-		Serial.println("EEPROM CRC incorrect!");
+	{
+		/* Serial.println("EEPROM CRC incorrect!"); */
+	}
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x08)
-		Serial.println("EM7180 in initialized state!");
+	{
+		/* Serial.println("EM7180 in initialized state!"); */
+	}
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x10)
-		Serial.println("No EEPROM detected!");
+	{
+		/* Serial.println("No EEPROM detected!"); */
+	}
 	int count = 0;
 	while(!STAT)
 	{
 		lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ResetRequest, 0x01);
-		delay(500);
+		HAL_Delay(500);
 		count++;
 		STAT = (lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x01);
 		if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x01)
-			Serial.println("EEPROM detected on the sensor bus!");
+		{
+			/* Serial.println("EEPROM detected on the sensor bus!"); */
+		}
 		if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x02)
-			Serial.println("EEPROM uploaded config file!");
+		{
+			/* Serial.println("EEPROM uploaded config file!"); */
+		}
 		if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x04)
-			Serial.println("EEPROM CRC incorrect!");
+		{
+			/* Serial.println("EEPROM CRC incorrect!"); */
+		}
 		if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x08)
-			Serial.println("EM7180 in initialized state!");
+		{
+			/* Serial.println("EM7180 in initialized state!"); */
+		}
 		if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x10)
-			Serial.println("No EEPROM detected!");
+		{
+			/* Serial.println("No EEPROM detected!"); */
+		}
 		if(count > 10)
+		{
 			break;
+		}
 	}
 
 	if(!(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SentralStatus) & 0x04))
-		Serial.println("EEPROM upload successful!");
+	{
+		/* Serial.println("EEPROM upload successful!"); */
+	}
 }
 
 uint8_t em7180_status()
@@ -179,15 +217,15 @@ void em7180_init(uint8_t accBW, uint8_t gyroBW, uint16_t accFS, uint16_t gyroFS,
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_EnableEvents, 0x07);
 	// Enable EM7180 run mode
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_HostControl, 0x01); // set SENtral in normal run mode
-	delay(100);
+	HAL_Delay(100);
 
 	// EM7180 parameter adjustments
-	Serial.println("Beginning Parameter Adjustments");
+	/* Serial.println("Beginning Parameter Adjustments"); */
 
 	// Read sensor default FS values from parameter space
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ParamRequest, 0x4A); // Request to read parameter 74
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_AlgorithmControl, 0x80); // Request parameter transfer process
-	byte param_xfer = lsm6dsm_read_byte(EM7180_ADDRESS,
+	uint8_t param_xfer = lsm6dsm_read_byte(EM7180_ADDRESS,
 	EM7180_ParamAcknowledge);
 	while(!(param_xfer == 0x4A))
 	{
@@ -199,12 +237,12 @@ void em7180_init(uint8_t accBW, uint8_t gyroBW, uint16_t accFS, uint16_t gyroFS,
 	param[3] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte3);
 	EM7180_mag_fs = ((int16_t) (param[1] << 8) | param[0]);
 	EM7180_acc_fs = ((int16_t) (param[3] << 8) | param[2]);
-	Serial.print("Magnetometer Default Full Scale Range: +/-");
-	Serial.print(EM7180_mag_fs);
-	Serial.println("uT");
-	Serial.print("Accelerometer Default Full Scale Range: +/-");
-	Serial.print(EM7180_acc_fs);
-	Serial.println("g");
+	/* Serial.print("Magnetometer Default Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_mag_fs); */
+	/* Serial.println("uT"); */
+	/* Serial.print("Accelerometer Default Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_acc_fs); */
+	/* Serial.println("g"); */
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ParamRequest, 0x4B); // Request to read  parameter 75
 	param_xfer = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ParamAcknowledge);
 	while(!(param_xfer == 0x4B))
@@ -216,9 +254,9 @@ void em7180_init(uint8_t accBW, uint8_t gyroBW, uint16_t accFS, uint16_t gyroFS,
 	param[2] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte2);
 	param[3] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte3);
 	EM7180_gyro_fs = ((int16_t) (param[1] << 8) | param[0]);
-	Serial.print("Gyroscope Default Full Scale Range: +/-");
-	Serial.print(EM7180_gyro_fs);
-	Serial.println("dps");
+	/* Serial.print("Gyroscope Default Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_gyro_fs); */
+	/* Serial.println("dps"); */
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ParamRequest, 0x00); //End parameter transfer
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_AlgorithmControl, 0x00); // re-enable algorithm
 
@@ -243,12 +281,12 @@ void em7180_init(uint8_t accBW, uint8_t gyroBW, uint16_t accFS, uint16_t gyroFS,
 	param[3] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte3);
 	EM7180_mag_fs = ((int16_t) (param[1] << 8) | param[0]);
 	EM7180_acc_fs = ((int16_t) (param[3] << 8) | param[2]);
-	Serial.print("Magnetometer New Full Scale Range: +/-");
-	Serial.print(EM7180_mag_fs);
-	Serial.println("uT");
-	Serial.print("Accelerometer New Full Scale Range: +/-");
-	Serial.print(EM7180_acc_fs);
-	Serial.println("g");
+	/* Serial.print("Magnetometer New Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_mag_fs); */
+	/* Serial.println("uT"); */
+	/* Serial.print("Accelerometer New Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_acc_fs); */
+	/* Serial.println("g"); */
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ParamRequest, 0x4B); // Request to read  parameter 75
 	param_xfer = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ParamAcknowledge);
 	while(!(param_xfer == 0x4B))
@@ -260,81 +298,120 @@ void em7180_init(uint8_t accBW, uint8_t gyroBW, uint16_t accFS, uint16_t gyroFS,
 	param[2] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte2);
 	param[3] = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_SavedParamByte3);
 	EM7180_gyro_fs = ((int16_t) (param[1] << 8) | param[0]);
-	Serial.print("Gyroscope New Full Scale Range: +/-");
-	Serial.print(EM7180_gyro_fs);
-	Serial.println("dps");
+	/* Serial.print("Gyroscope New Full Scale Range: +/-"); */
+	/* Serial.print(EM7180_gyro_fs); */
+	/* Serial.println("dps"); */
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_ParamRequest, 0x00); //End parameter transfer
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_AlgorithmControl, 0x00); // re-enable algorithm
 
 	// Read EM7180 status
 	uint8_t runStatus = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_RunStatus);
 	if(runStatus & 0x01)
-		Serial.println(" EM7180 run status = normal mode");
+	{
+		/* Serial.println(" EM7180 run status = normal mode"); */
+	}
 	uint8_t algoStatus = lsm6dsm_read_byte(EM7180_ADDRESS,
 	EM7180_AlgorithmStatus);
 	if(algoStatus & 0x01)
-		Serial.println(" EM7180 standby status");
+	{
+		/* Serial.println(" EM7180 standby status"); */
+	}
 	if(algoStatus & 0x02)
-		Serial.println(" EM7180 algorithm slow");
+	{
+		/* Serial.println(" EM7180 algorithm slow"); */
+	}
 	if(algoStatus & 0x04)
-		Serial.println(" EM7180 in stillness mode");
+	{
+		/* Serial.println(" EM7180 in stillness mode"); */
+	}
 	if(algoStatus & 0x08)
-		Serial.println(" EM7180 mag calibration completed");
+	{
+		/* Serial.println(" EM7180 mag calibration completed"); */
+	}
 	if(algoStatus & 0x10)
-		Serial.println(" EM7180 magnetic anomaly detected");
+	{
+		/* Serial.println(" EM7180 magnetic anomaly detected"); */
+	}
 	if(algoStatus & 0x20)
-		Serial.println(" EM7180 unreliable sensor data");
+	{
+		/* Serial.println(" EM7180 unreliable sensor data"); */
+	}
 	uint8_t passthruStatus = lsm6dsm_read_byte(EM7180_ADDRESS,
 	EM7180_PassThruStatus);
 	if(passthruStatus & 0x01)
-		Serial.print(" EM7180 in passthru mode!");
+	{
+		/* Serial.print(" EM7180 in passthru mode!"); */
+	}
 	uint8_t eventStatus = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_EventStatus);
 	if(eventStatus & 0x01)
-		Serial.println(" EM7180 CPU reset");
+	{
+		/* Serial.println(" EM7180 CPU reset"); */
+	}
 	if(eventStatus & 0x02)
-		Serial.println(" EM7180 Error");
+	{
+		/* Serial.println(" EM7180 Error"); */
+	}
 	if(eventStatus & 0x04)
-		Serial.println(" EM7180 new quaternion result");
+	{
+		/* Serial.println(" EM7180 new quaternion result"); */
+	}
 	if(eventStatus & 0x08)
-		Serial.println(" EM7180 new mag result");
+	{
+		/* Serial.println(" EM7180 new mag result"); */
+	}
 	if(eventStatus & 0x10)
-		Serial.println(" EM7180 new accel result");
+	{
+		/* Serial.println(" EM7180 new accel result"); */
+	}
 	if(eventStatus & 0x20)
-		Serial.println(" EM7180 new gyro result");
+	{
+		/* Serial.println(" EM7180 new gyro result"); */
+	}
 
-	delay(1000); // give some time to read the screen
+	HAL_Delay(1000); // give some time to read the screen
 
 	// Check sensor status
 	uint8_t sensorStatus = lsm6dsm_read_byte(EM7180_ADDRESS,
 	EM7180_SensorStatus);
-	Serial.print(" EM7180 sensor status = ");
-	Serial.println(sensorStatus);
+	/* Serial.print(" EM7180 sensor status = "); */
+	/* Serial.println(sensorStatus); */
 	if(sensorStatus & 0x01)
-		Serial.print("Magnetometer not acknowledging!");
+	{
+		/* Serial.print("Magnetometer not acknowledging!"); */
+	}
 	if(sensorStatus & 0x02)
-		Serial.print("Accelerometer not acknowledging!");
+	{
+		/* Serial.print("Accelerometer not acknowledging!"); */
+	}
 	if(sensorStatus & 0x04)
-		Serial.print("Gyro not acknowledging!");
+	{
+		/* Serial.print("Gyro not acknowledging!"); */
+	}
 	if(sensorStatus & 0x10)
-		Serial.print("Magnetometer ID not recognized!");
+	{
+		/* Serial.print("Magnetometer ID not recognized!"); */
+	}
 	if(sensorStatus & 0x20)
-		Serial.print("Accelerometer ID not recognized!");
+	{
+		/* Serial.print("Accelerometer ID not recognized!"); */
+	}
 	if(sensorStatus & 0x40)
-		Serial.print("Gyro ID not recognized!");
+	{
+		/* Serial.print("Gyro ID not recognized!"); */
+	}
 
-	Serial.print("Actual MagRate = ");
-	Serial.print(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualMagRate));
-	Serial.println(" Hz");
-	Serial.print("Actual AccelRate = ");
-	Serial.print(
-	    10 * lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualAccelRate));
-	Serial.println(" Hz");
-	Serial.print("Actual GyroRate = ");
-	Serial.print(10 * lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualGyroRate));
-	Serial.println(" Hz");
-	Serial.print("Actual BaroRate = ");
-	Serial.print(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualBaroRate));
-	Serial.println(" Hz");
+	/* Serial.print("Actual MagRate = "); */
+	/* Serial.print(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualMagRate)); */
+	/* Serial.println(" Hz"); */
+	/* Serial.print("Actual AccelRate = "); */
+	/* Serial.print(10 * lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualAccelRate)); */
+	/* Serial.println(" Hz"); */
+	/* Serial.print("Actual GyroRate = "); */
+	/* Serial.print(10 * lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualGyroRate)); */
+	/* Serial.println(" Hz"); */
+	/* Serial.print("Actual BaroRate = "); */
+	/* Serial.print(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_ActualBaroRate)); */
+	/* Serial.println(" Hz"); */
 }
 
 float em7180_uint32_reg_to_float(uint8_t *buf)
@@ -596,19 +673,19 @@ void em7180_passthrough()
 	uint8_t c = lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_AlgorithmControl);
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_AlgorithmControl, c | 0x01);
 	//  c = readByte(EM7180_ADDRESS, EM7180_AlgorithmStatus);
-	//  Serial.print("c = "); Serial.println(c);
+	/*	//  Serial.print("c = "); Serial.println(c); */
 	// Verify standby status
 	// if(readByte(EM7180_ADDRESS, EM7180_AlgorithmStatus) & 0x01) {
-	Serial.println("SENtral in standby mode");
+	/* Serial.println("SENtral in standby mode"); */
 	// Place SENtral in pass-through mode
 	lsm6dsm_write_byte(EM7180_ADDRESS, EM7180_PassThruControl, 0x01);
 	if(lsm6dsm_read_byte(EM7180_ADDRESS, EM7180_PassThruStatus) & 0x01)
 	{
-		Serial.println("SENtral in pass-through mode");
+		/* Serial.println("SENtral in pass-through mode"); */
 	}
 	else
 	{
-		Serial.println("ERROR! SENtral not in pass-through mode!");
+		/* Serial.println("ERROR! SENtral not in pass-through mode!"); */
 	}
 }
 
@@ -618,8 +695,8 @@ static void m24512dfm_write_byte(uint8_t device_address, uint8_t data_address1,
                                  uint8_t data_address2, uint8_t data)
 {
 	uint8_t temp[2] = { data_address1, data_address2 };
-	Wire.transfer(device_address, &temp[0], 2, NULL, 0);
-	Wire.transfer(device_address, &data, 1, NULL, 0);
+	/* Wire.transfer(device_address, &temp[0], 2, NULL, 0); */
+	/* Wire.transfer(device_address, &data, 1, NULL, 0); */
 }
 
 static void m24512dfm_write(uint8_t device_address, uint8_t data_address1,
@@ -628,23 +705,23 @@ static void m24512dfm_write(uint8_t device_address, uint8_t data_address1,
 	if(count > 128)
 	{
 		count = 128;
-		Serial.print("Page count cannot be more than 128 bytes!");
+		/* Serial.print("Page count cannot be more than 128 bytes!"); */
 	}
 	uint8_t temp[2] = { data_address1, data_address2 };
-	Wire.transfer(device_address, &temp[0], 2, NULL, 0);
-	Wire.transfer(device_address, &dest[0], count, NULL, 0);
+	/* Wire.transfer(device_address, &temp[0], 2, NULL, 0); */
+	/* Wire.transfer(device_address, &dest[0], count, NULL, 0); */
 }
 
 static uint8_t m24512dfm_read_byte(uint8_t device_address,
                                    uint8_t data_address1, uint8_t data_address2)
 {
 	uint8_t data; // `data` will store the register data
-	Wire.beginTransmission(device_address);         // Initialize the Tx buffer
-	Wire.write(data_address1);        // Put slave register address in Tx buffer
-	Wire.write(data_address2);        // Put slave register address in Tx buffer
-	Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive
-	Wire.requestFrom(device_address, 1); // Read one byte from slave register address
-	data = Wire.read();                      // Fill Rx buffer with result
+	/* Wire.beginTransmission(device_address);         // Initialize the Tx buffer */
+	/* Wire.write(data_address1);        // Put slave register address in Tx buffer */
+	/* Wire.write(data_address2);        // Put slave register address in Tx buffer */
+	/* Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive */
+	/* Wire.requestFrom(device_address, 1); // Read one byte from slave register address */
+	/*	data = Wire.read();                      // Fill Rx buffer with result */
 	return data;                         // Return data read from slave register
 }
 
@@ -652,7 +729,7 @@ static void m24512dfm_read(uint8_t device_address, uint8_t data_address1,
                            uint8_t data_address2, uint8_t count, uint8_t *dest)
 {
 	uint8_t temp[2] = { data_address1, data_address2 };
-	Wire.transfer(device_address, &temp[0], 2, dest, count);
+	/* Wire.transfer(device_address, &temp[0], 2, dest, count); */
 }
 
 // I2C read/write functions for the EM7180
@@ -661,20 +738,20 @@ void em7180_write_byte(uint8_t address, uint8_t subAddress, uint8_t data)
 	uint8_t temp[2];
 	temp[0] = subAddress;
 	temp[1] = data;
-	Wire.transfer(address, &temp[0], 2, NULL, 0);
+	/* Wire.transfer(address, &temp[0], 2, NULL, 0); */
 }
 
 static uint8_t em7180_read_byte(uint8_t address, uint8_t subAddress)
 {
 	uint8_t temp[1];
-	Wire.transfer(address, &subAddress, 1, &temp[0], 1);
+	/* Wire.transfer(address, &subAddress, 1, &temp[0], 1); */
 	return temp[0];
 }
 
 static void em7180_read(uint8_t address, uint8_t subAddress, uint8_t count,
                         uint8_t *dest)
 {
-	Wire.transfer(address, &subAddress, 1, dest, count);
+	/* Wire.transfer(address, &subAddress, 1, dest, count); */
 }
 
 // Implementation of Sebastian Madgwick's "...efficient orientation filter for... inertial/magnetic sensor arrays"
@@ -726,7 +803,9 @@ __attribute__((optimize("O3"))) void em7180_update_quat_madgwick(float ax,
 	// Normalize accelerometer measurement
 	norm = sqrt(ax * ax + ay * ay + az * az);
 	if(norm == 0.0f)
+	{
 		return; // handle NaN
+	}
 	norm = 1.0f / norm;
 	ax *= norm;
 	ay *= norm;
@@ -735,7 +814,9 @@ __attribute__((optimize("O3"))) void em7180_update_quat_madgwick(float ax,
 	// Normalize magnetometer measurement
 	norm = sqrt(mx * mx + my * my + mz * mz);
 	if(norm == 0.0f)
+	{
 		return; // handle NaN
+	}
 	norm = 1.0f / norm;
 	mx *= norm;
 	my *= norm;
@@ -854,7 +935,9 @@ void em7180_update_quat_mahony(float ax, float ay, float az, float gx, float gy,
 	// Normalize accelerometer measurement
 	norm = sqrt(ax * ax + ay * ay + az * az);
 	if(norm == 0.0f)
+	{
 		return; // handle NaN
+	}
 	norm = 1.0f / norm;        // use reciprocal for division
 	ax *= norm;
 	ay *= norm;
@@ -863,7 +946,9 @@ void em7180_update_quat_mahony(float ax, float ay, float az, float gx, float gy,
 	// Normalize magnetometer measurement
 	norm = sqrt(mx * mx + my * my + mz * mz);
 	if(norm == 0.0f)
+	{
 		return; // handle NaN
+	}
 	norm = 1.0f / norm;        // use reciprocal for division
 	mx *= norm;
 	my *= norm;
@@ -924,5 +1009,4 @@ void em7180_update_quat_mahony(float ax, float ay, float az, float gx, float gy,
 	_q[1] = q2 * norm;
 	_q[2] = q3 * norm;
 	_q[3] = q4 * norm;
-
 }

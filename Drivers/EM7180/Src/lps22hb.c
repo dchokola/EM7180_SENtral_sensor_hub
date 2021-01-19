@@ -30,7 +30,7 @@ static void lps22h_read(uint8_t address, uint8_t subAddress, uint8_t count,
 /* Function Definitions */
 lps22h_new(uint8_t pin)
 {
-	pinMode(pin, INPUT);
+	/*	pinMode(pin, INPUT); */
 	_intPin = pin;
 }
 
@@ -76,33 +76,35 @@ void lps22h_init(uint8_t PODR)
 
 static void lps22h_write_byte(uint8_t address, uint8_t subAddress, uint8_t data)
 {
-	Wire.beginTransmission(address);  // Initialize the Tx buffer
-	Wire.write(subAddress);           // Put slave register address in Tx buffer
-	Wire.write(data);                 // Put data in Tx buffer
-	Wire.endTransmission();           // Send the Tx buffer
+	/* Wire.beginTransmission(address);  // Initialize the Tx buffer */
+	/* Wire.write(subAddress);           // Put slave register address in Tx buffer */
+	/* Wire.write(data);                 // Put data in Tx buffer */
+	/* Wire.endTransmission();           // Send the Tx buffer */
 }
 
 static uint8_t lps22h_read_byte(uint8_t address, uint8_t subAddress)
 {
 	uint8_t data; // `data` will store the register data   
-	Wire.beginTransmission(address);         // Initialize the Tx buffer
-	Wire.write(subAddress);           // Put slave register address in Tx buffer
-	Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive
-	Wire.requestFrom(address, (size_t) 1); // Read one uint8_t from slave register address 
-	data = Wire.read();                      // Fill Rx buffer with result
+	/* Wire.beginTransmission(address);         // Initialize the Tx buffer */
+	/* Wire.write(subAddress);           // Put slave register address in Tx buffer */
+	/* Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive */
+	/* Wire.requestFrom(address, (size_t) 1); // Read one uint8_t from slave register address  */
+	/*	data = Wire.read();                      // Fill Rx buffer with result */
 	return data;                  // Return data lps22h_read from slave register
 }
 
 static void lps22h_read(uint8_t address, uint8_t subAddress, uint8_t count,
                         uint8_t *dest)
 {
-	Wire.beginTransmission(address);   // Initialize the Tx buffer
-	Wire.write(subAddress);           // Put slave register address in Tx buffer
-	Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive
+	/* Wire.beginTransmission(address);   // Initialize the Tx buffer */
+	/* Wire.write(subAddress);           // Put slave register address in Tx buffer */
+	/* Wire.endTransmission(false); // Send the Tx buffer, but send a restart to keep connection alive */
 	uint8_t i = 0;
-	Wire.requestFrom(address, (size_t) count); // Read bytes from slave register address 
-	while(Wire.available())
-	{
-		dest[i++] = Wire.lps22h_read();
-	}         // Put lps22h_read results in the Rx buffer
+	/* Wire.requestFrom(address, (size_t) count); // Read bytes from slave register address  */
+	/*
+	 while(Wire.available())
+	 {
+	 dest[i++] = Wire.lps22h_read();
+	 }         // Put lps22h_read results in the Rx buffer
+	 */
 }

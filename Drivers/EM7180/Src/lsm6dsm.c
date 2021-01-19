@@ -34,9 +34,9 @@ static void lsm6dsm_read(uint8_t address, uint8_t subAddress, uint8_t count,
 /* Function Definitions */
 lsm6dsm_new(uint8_t pin1, uint8_t pin2)
 {
-	pinMode(pin1, INPUT);
+	/*	pinMode(pin1, INPUT); */
 	_intPin1 = pin1;
-	pinMode(pin2, INPUT);
+	/*	pinMode(pin2, INPUT); */
 	_intPin2 = pin2;
 }
 
@@ -102,7 +102,7 @@ void lsm6dsm_reset()
 	// reset device
 	uint8_t temp = lsm6dsm_read_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
-	delay(100); // Wait for all registers to reset 
+	HAL_Delay(100); // Wait for all registers to reset
 }
 
 void lsm6dsm_init(uint8_t ascale, uint8_t gscale, uint8_t AODR, uint8_t GODR)
@@ -144,68 +144,68 @@ void lsm6dsm_selfTest()
 	gyroNom[2] = temp[3];
 
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
-	delay(100); // let accel respond
+	HAL_Delay(100); // let accel respond
 	readData(temp);
 	accelPTest[0] = temp[4];
 	accelPTest[1] = temp[5];
 	accelPTest[2] = temp[6];
 
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
-	delay(100); // let accel respond
+	HAL_Delay(100); // let accel respond
 	readData(temp);
 	accelNTest[0] = temp[4];
 	accelNTest[1] = temp[5];
 	accelNTest[2] = temp[6];
 
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
-	delay(100); // let gyro respond
+	HAL_Delay(100); // let gyro respond
 	readData(temp);
 	gyroPTest[0] = temp[1];
 	gyroPTest[1] = temp[2];
 	gyroPTest[2] = temp[3];
 
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
-	delay(100); // let gyro respond
+	HAL_Delay(100); // let gyro respond
 	readData(temp);
 	gyroNTest[0] = temp[1];
 	gyroNTest[1] = temp[2];
 	gyroNTest[2] = temp[3];
 
 	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
-	delay(100); // let accel and gyro respond
+	HAL_Delay(100); // let accel and gyro respond
 
-	Serial.println("Accel Self Test:");
-	Serial.print("+Ax results:");
-	Serial.print((accelPTest[0] - accelNom[0]) * _aRes * 1000.0);
-	Serial.println(" mg");
-	Serial.print("-Ax results:");
-	Serial.println((accelNTest[0] - accelNom[0]) * _aRes * 1000.0);
-	Serial.print("+Ay results:");
-	Serial.println((accelPTest[1] - accelNom[1]) * _aRes * 1000.0);
-	Serial.print("-Ay results:");
-	Serial.println((accelNTest[1] - accelNom[1]) * _aRes * 1000.0);
-	Serial.print("+Az results:");
-	Serial.println((accelPTest[2] - accelNom[2]) * _aRes * 1000.0);
-	Serial.print("-Az results:");
-	Serial.println((accelNTest[2] - accelNom[2]) * _aRes * 1000.0);
-	Serial.println("Should be between 90 and 1700 mg");
+	/* Serial.println("Accel Self Test:"); */
+	/* Serial.print("+Ax results:"); */
+	/* Serial.print((accelPTest[0] - accelNom[0]) * _aRes * 1000.0); */
+	/* Serial.println(" mg"); */
+	/* Serial.print("-Ax results:"); */
+	/* Serial.println((accelNTest[0] - accelNom[0]) * _aRes * 1000.0); */
+	/* Serial.print("+Ay results:"); */
+	/* Serial.println((accelPTest[1] - accelNom[1]) * _aRes * 1000.0); */
+	/* Serial.print("-Ay results:"); */
+	/* Serial.println((accelNTest[1] - accelNom[1]) * _aRes * 1000.0); */
+	/* Serial.print("+Az results:"); */
+	/* Serial.println((accelPTest[2] - accelNom[2]) * _aRes * 1000.0); */
+	/* Serial.print("-Az results:"); */
+	/* Serial.println((accelNTest[2] - accelNom[2]) * _aRes * 1000.0); */
+	/* Serial.println("Should be between 90 and 1700 mg"); */
 
-	Serial.println("Gyro Self Test:");
-	Serial.print("+Gx results:");
-	Serial.print((gyroPTest[0] - gyroNom[0]) * _gRes);
-	Serial.println(" dps");
-	Serial.print("-Gx results:");
-	Serial.println((gyroNTest[0] - gyroNom[0]) * _gRes);
-	Serial.print("+Gy results:");
-	Serial.println((gyroPTest[1] - gyroNom[1]) * _gRes);
-	Serial.print("-Gy results:");
-	Serial.println((gyroNTest[1] - gyroNom[1]) * _gRes);
-	Serial.print("+Gz results:");
-	Serial.println((gyroPTest[2] - gyroNom[2]) * _gRes);
-	Serial.print("-Gz results:");
-	Serial.println((gyroNTest[2] - gyroNom[2]) * _gRes);
-	Serial.println("Should be between 20 and 80 dps");
-	delay(2000);
+	/* Serial.println("Gyro Self Test:"); */
+	/* Serial.print("+Gx results:"); */
+	/* Serial.print((gyroPTest[0] - gyroNom[0]) * _gRes); */
+	/* Serial.println(" dps"); */
+	/* Serial.print("-Gx results:"); */
+	/* Serial.println((gyroNTest[0] - gyroNom[0]) * _gRes); */
+	/* Serial.print("+Gy results:"); */
+	/* Serial.println((gyroPTest[1] - gyroNom[1]) * _gRes); */
+	/* Serial.print("-Gy results:"); */
+	/* Serial.println((gyroNTest[1] - gyroNom[1]) * _gRes); */
+	/* Serial.print("+Gz results:"); */
+	/* Serial.println((gyroPTest[2] - gyroNom[2]) * _gRes); */
+	/* Serial.print("-Gz results:"); */
+	/* Serial.println((gyroNTest[2] - gyroNom[2]) * _gRes); */
+	/* Serial.println("Should be between 20 and 80 dps"); */
+	HAL_Delay(2000);
 
 }
 
@@ -214,9 +214,8 @@ void lsm6dsm_offsetBias(float *dest1, float *dest2)
 	int16_t temp[7] = { 0, 0, 0, 0, 0, 0, 0 };
 	int32_t sum[7] = { 0, 0, 0, 0, 0, 0, 0 };
 
-	Serial.println(
-	    "Calculate accel and gyro offset biases: keep sensor flat and motionless!");
-	delay(4000);
+	/* Serial.println("Calculate accel and gyro offset biases: keep sensor flat and motionless!"); */
+	HAL_Delay(4000);
 
 	for(int ii = 0; ii < 128; ii++)
 	{
@@ -227,7 +226,7 @@ void lsm6dsm_offsetBias(float *dest1, float *dest2)
 		sum[4] += temp[4];
 		sum[5] += temp[5];
 		sum[6] += temp[6];
-		delay(50);
+		HAL_Delay(50);
 	}
 
 	dest1[0] = sum[1] * _gRes / 128.0f;
@@ -284,18 +283,18 @@ static void lsm6dsm_write_byte(uint8_t address, uint8_t subAddress,
 	uint8_t temp[2];
 	temp[0] = subAddress;
 	temp[1] = data;
-	Wire.transfer(address, &temp[0], 2, NULL, 0);
+	/* Wire.transfer(address, &temp[0], 2, NULL, 0); */
 }
 
 static uint8_t lsm6dsm_read_byte(uint8_t address, uint8_t subAddress)
 {
 	uint8_t temp[1];
-	Wire.transfer(address, &subAddress, 1, &temp[0], 1);
+	/* Wire.transfer(address, &subAddress, 1, &temp[0], 1); */
 	return temp[0];
 }
 
 static void lsm6dsm_read(uint8_t address, uint8_t subAddress, uint8_t count,
                          uint8_t *dest)
 {
-	Wire.transfer(address, &subAddress, 1, dest, count);
+	/* Wire.transfer(address, &subAddress, 1, dest, count); */
 }
