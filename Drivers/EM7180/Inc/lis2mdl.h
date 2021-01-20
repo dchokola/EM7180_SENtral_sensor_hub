@@ -61,12 +61,11 @@
 /* Data Structures */
 typedef struct lis2mdl_s
 {
-	I2C_HandleTypeDef *hi2c;
 	uint8_t m_odr;
 } lis2mdl_t;
 
 /* Function Prototypes */
-void lis2mdl_init(lis2mdl_t *lis2mdl, I2C_HandleTypeDef *hi2c, uint8_t m_odr);
-void lis2mdl_config(lis2mdl_t *lis2mdl);
+void lis2mdl_init(lis2mdl_t *lis2mdl, uint8_t m_odr);
+void lis2mdl_config(lis2mdl_t *lis2mdl, I2C_HandleTypeDef *hi2c);
 
 #endif

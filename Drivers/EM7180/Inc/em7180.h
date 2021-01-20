@@ -101,6 +101,8 @@ typedef struct em7180_s
 {
 	I2C_HandleTypeDef *hi2c;
 	lsm6dsm_t *lsm6dsm;
+	lis2mdl_t *lis2mdl;
+	lps22hb_t *lps22hb;
 	uint16_t acc_fs;
 	uint16_t gyro_fs;
 	uint16_t mag_fs;
@@ -112,13 +114,15 @@ typedef struct em7180_s
 } em7180_t;
 
 /* Function Prototypes */
-void em7180_init(em7180_t *em7180, lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c1,
-                 uint16_t acc_fs, uint16_t gyro_fs, uint16_t mag_fs,
-                 uint8_t q_rate_div, uint8_t mag_rate, uint8_t acc_rate,
-                 uint8_t gyro_rate, uint8_t baro_rate);
+void em7180_init(em7180_t *em7180, I2C_HandleTypeDef *hi2c, lsm6dsm_t *lsm6dsm,
+                 lis2mdl_t *lis2mdl, lps22hb_t *lps22hb, uint16_t acc_fs,
+                 uint16_t gyro_fs, uint16_t mag_fs, uint8_t q_rate_div,
+                 uint8_t mag_rate, uint8_t acc_rate, uint8_t gyro_rate,
+                 uint8_t baro_rate);
 void em7180_config(em7180_t *em7180);
-void em7180_gyro_set_fs(uint16_t gyro_fs);
-void em7180_mag_acc_set_fs(uint16_t mag_fs, uint16_t acc_fs);
-void em7180_set_integer_param(uint8_t param, uint32_t param_val);
+void em7180_gyro_set_fs(em7180_t *em7180, uint16_t gyro_fs);
+void em7180_mag_acc_set_fs(em7180_t *em7180, uint16_t mag_fs, uint16_t acc_fs);
+void em7180_set_integer_param(em7180_t *em7180, uint8_t param,
+                              uint32_t param_val);
 
 #endif /* EM7180_H_ */

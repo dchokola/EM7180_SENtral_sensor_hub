@@ -170,8 +170,8 @@ typedef struct lsm6dsm_s
 } lsm6dsm_t;
 
 /* Function Prototypes */
-void lsm6dsm_init(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c, uint8_t ascale,
-                  uint8_t gscale, uint8_t a_odr, uint8_t g_odr);
-void lsm6dsm_config(lsm6dsm_t *lsm6dsm);
+void lsm6dsm_init(lsm6dsm_t *lsm6dsm, uint8_t ascale, uint8_t gscale,
+                  uint8_t a_odr, uint8_t g_odr);
+void lsm6dsm_config(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c);
 
 #endif

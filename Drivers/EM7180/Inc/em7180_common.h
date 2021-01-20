@@ -12,11 +12,42 @@
 
 /* Includes */
 #include <stdint.h>
+#include "i2c.h"
+
+/* Definitions */
+#define return_if_fail(cond) \
+	if(!(cond))              \
+	{                        \
+		return;              \
+	}
+#define return_val_if_fail(cond, val) \
+	if(!(cond))                       \
+	{                                 \
+		return (val);                 \
+	}
 
 /* Function Prototypes */
-void lsm6dsm_write_byte(uint8_t address, uint8_t subAddress, uint8_t data);
-uint8_t lsm6dsm_read_byte(uint8_t address, uint8_t subAddress);
-void lsm6dsm_read(uint8_t address, uint8_t subAddress, uint8_t count,
-                  uint8_t *dest);
+inline __attribute__((always_inline))  HAL_StatusTypeDef i2c_write_byte(
+    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr, uint8_t data)
+{
+	return HAL_I2C_Mem_Write(hi2c, addr << 1, sub_addr, 1, &data, 1,
+	                         HAL_MAX_DELAY);
+}
+inline __attribute__((always_inline))  uint8_t i2c_read_byte(
+    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr)
+{
+	uint8_t temp;
+
+	HAL_I2C_Mem_Read(hi2c, addr << 1, sub_addr, 1, &temp, 1, HAL_MAX_DELAY);
+
+	return temp;
+}
+inline __attribute__((always_inline))  HAL_StatusTypeDef i2c_read(
+    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr, uint8_t *data,
+    uint16_t len)
+{
+	return HAL_I2C_Mem_Read(hi2c, addr << 1, sub_addr, 1, data, len,
+	                        HAL_MAX_DELAY);
+}
 
 #endif /* EM7180_COMMON_h */

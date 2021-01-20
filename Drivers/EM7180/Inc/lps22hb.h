@@ -65,7 +65,7 @@ typedef struct lps22hb_s
 } lps22hb_t;
 
 /* Function Prototypes */
-void lps22hb_init(lps22hb_t *lps22hb, I2C_HandleTypeDef *hi2c, uint8_t p_odr);
-void lps22hb_config(lps22hb_t *lps22hb);
+void lps22hb_init(lps22hb_t *lps22hb, uint8_t p_odr);
+void lps22hb_config(lps22hb_t *lps22hb, I2C_HandleTypeDef *hi2c);
 
 #endif

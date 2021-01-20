@@ -23,49 +23,48 @@
 /* Private Global Variables */
 
 /* Function Prototypes */
+static void lsm6dsm_read_data(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c,
+                              int16_t *destination);
 
 /* Function Definitions */
-void lsm6dsm_init(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c, uint8_t ascale,
-                  uint8_t gscale, uint8_t a_odr, uint8_t g_odr)
+void lsm6dsm_init(lsm6dsm_t *lsm6dsm, uint8_t ascale, uint8_t gscale,
+                  uint8_t a_odr, uint8_t g_odr)
 {
-	if(!lsm6dsm)
-	{
-		return;
-	}
+	return_if_fail(lsm6dsm);
 
-	lsm6dsm->hi2c = hi2c;
 	lsm6dsm->ascale = ascale;
 	lsm6dsm->gscale = gscale;
 	lsm6dsm->a_odr = a_odr;
 	lsm6dsm->g_odr = g_odr;
 }
 
-void lsm6dsm_config(lsm6dsm_t *lsm6dsm)
+void lsm6dsm_config(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL,
-	                   lsm6dsm->a_odr << 4 | lsm6dsm->ascale << 2);
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL,
+	               lsm6dsm->a_odr << 4 | lsm6dsm->ascale << 2);
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G,
-	                   lsm6dsm->g_odr << 4 | lsm6dsm->gscale << 2);
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G,
+	               lsm6dsm->g_odr << 4 | lsm6dsm->gscale << 2);
 
-	uint8_t temp = lsm6dsm_read_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+	uint8_t temp = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
 	// enable block update (bit 6 = 1), auto-increment registers (bit 2 = 1)
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x40 | 0x04);
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x40 | 0x04);
 	// by default, interrupts active HIGH, push pull, little endian data
 	// (can be changed by writing to bits 5, 4, and 1, resp to above register)
 
 	// enable accel LP2 (bit 7 = 1), set LP2 tp ODR/9 (bit 6 = 1), enable input_composite (bit 3) for low noise
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL, 0x80 | 0x40 | 0x08);
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL, 0x80 | 0x40 | 0x08);
 
 	// interrupt handling
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40); // enable significant motion interrupts on INT1
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03); // enable accel/gyro data ready interrupts on INT2
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40); // enable significant motion interrupts on INT1
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03); // enable accel/gyro data ready interrupts on INT2
 }
 
-uint8_t lsm6dsm_chip_id_get()
+uint8_t lsm6dsm_chip_id_get(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
-	uint8_t c = lsm6dsm_read_byte(LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
+	uint8_t c = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
+
 	return c;
 }
 
@@ -126,22 +125,26 @@ float lsm6dsm_gres_get(lsm6dsm_t *lsm6dsm)
 	return g_res;
 }
 
-void lsm6dsm_reset()
+void lsm6dsm_reset(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
 	// reset device
-	uint8_t temp = lsm6dsm_read_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
+	uint8_t temp = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
 	HAL_Delay(100); // Wait for all registers to reset
 }
 
-void lsm6dsm_selfTest()
+void lsm6dsm_self_test(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
 	int16_t temp[7] = { 0, 0, 0, 0, 0, 0, 0 };
-	int16_t accelPTest[3] = { 0, 0, 0 }, accelNTest[3] = { 0, 0, 0 },
-	    gyroPTest[3] = { 0, 0, 0 }, gyroNTest[3] = { 0, 0, 0 };
-	int16_t accelNom[3] = { 0, 0, 0 }, gyroNom[3] = { 0, 0, 0 };
+	int16_t accelPTest[3] = { 0, 0, 0 };
+	int16_t accelNTest[3] = { 0, 0, 0 };
+	int16_t gyroPTest[3] = { 0, 0, 0 };
+	int16_t gyroNTest[3] = { 0, 0, 0 };
+	int16_t accelNom[3] = { 0, 0, 0 };
+	int16_t gyroNom[3] = { 0, 0, 0 };
 
-	lsm6dsm_read_data(temp);
+	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	accelNom[0] = temp[4];
 	accelNom[1] = temp[5];
 	accelNom[2] = temp[6];
@@ -149,35 +152,35 @@ void lsm6dsm_selfTest()
 	gyroNom[1] = temp[2];
 	gyroNom[2] = temp[3];
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
 	HAL_Delay(100); // let accel respond
-	lsm6dsm_read_data(temp);
+	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	accelPTest[0] = temp[4];
 	accelPTest[1] = temp[5];
 	accelPTest[2] = temp[6];
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
 	HAL_Delay(100); // let accel respond
-	lsm6dsm_read_data(temp);
+	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	accelNTest[0] = temp[4];
 	accelNTest[1] = temp[5];
 	accelNTest[2] = temp[6];
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
 	HAL_Delay(100); // let gyro respond
-	lsm6dsm_read_data(temp);
+	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	gyroPTest[0] = temp[1];
 	gyroPTest[1] = temp[2];
 	gyroPTest[2] = temp[3];
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
 	HAL_Delay(100); // let gyro respond
-	lsm6dsm_read_data(temp);
+	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	gyroNTest[0] = temp[1];
 	gyroNTest[1] = temp[2];
 	gyroNTest[2] = temp[3];
 
-	lsm6dsm_write_byte(LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
+	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
 	HAL_Delay(100); // let accel and gyro respond
 
 	/* Serial.println("Accel Self Test:"); */
@@ -215,7 +218,8 @@ void lsm6dsm_selfTest()
 
 }
 
-void lsm6dsm_offset_bias(lsm6dsm_t *lsm6dsm, float *dest1, float *dest2)
+void lsm6dsm_offset_bias(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c,
+                         float *dest1, float *dest2)
 {
 	int16_t temp[7] = { 0, 0, 0, 0, 0, 0, 0 };
 	int32_t sum[7] = { 0, 0, 0, 0, 0, 0, 0 };
@@ -227,7 +231,7 @@ void lsm6dsm_offset_bias(lsm6dsm_t *lsm6dsm, float *dest1, float *dest2)
 
 	for(int ii = 0; ii < 128; ii++)
 	{
-		lsm6dsm_read_data(temp);
+		lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 		sum[1] += temp[1];
 		sum[2] += temp[2];
 		sum[3] += temp[3];
@@ -271,36 +275,17 @@ void lsm6dsm_offset_bias(lsm6dsm_t *lsm6dsm, float *dest1, float *dest2)
 
 }
 
-void lsm6dsm_read_data(int16_t *destination)
+static void lsm6dsm_read_data(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c,
+                              int16_t *destination)
 {
-	uint8_t rawdata[14];  // x/y/z accel register data stored here
-	lsm6dsm_read(LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, 14, &rawdata[0]); // Read the 14 raw data registers into data array
-	destination[0] = ((int16_t) rawdata[1] << 8) | rawdata[0]; // Turn the MSB and LSB into a signed 16-bit value
-	destination[1] = ((int16_t) rawdata[3] << 8) | rawdata[2];
-	destination[2] = ((int16_t) rawdata[5] << 8) | rawdata[4];
-	destination[3] = ((int16_t) rawdata[7] << 8) | rawdata[6];
-	destination[4] = ((int16_t) rawdata[9] << 8) | rawdata[8];
-	destination[5] = ((int16_t) rawdata[11] << 8) | rawdata[10];
-	destination[6] = ((int16_t) rawdata[13] << 8) | rawdata[12];
-}
+	uint8_t data[14];  // x/y/z accel register data stored here
 
-// I2C read/write functions for the LSM6DSM
-void lsm6dsm_write_byte(uint8_t addr, uint8_t sub_addr, uint8_t data)
-{
-	uint8_t temp[2];
-	temp[0] = sub_addr;
-	temp[1] = data;
-	/* Wire.transfer(addr, &temp[0], 2, NULL, 0); */
-}
-
-uint8_t lsm6dsm_read_byte(uint8_t addr, uint8_t sub_addr)
-{
-	uint8_t temp[1];
-	/* Wire.transfer(addr, &sub_addr, 1, &temp[0], 1); */
-	return temp[0];
-}
-
-void lsm6dsm_read(uint8_t addr, uint8_t sub_addr, uint8_t count, uint8_t *dest)
-{
-	/* Wire.transfer(addr, &sub_addr, 1, dest, count); */
+	i2c_read(hi2c, LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, data, 14); // Read the 14 raw data registers into data array
+	destination[0] = ((int16_t) data[1] << 8) | data[0]; // Turn the MSB and LSB into a signed 16-bit value
+	destination[1] = ((int16_t) data[3] << 8) | data[2];
+	destination[2] = ((int16_t) data[5] << 8) | data[4];
+	destination[3] = ((int16_t) data[7] << 8) | data[6];
+	destination[4] = ((int16_t) data[9] << 8) | data[8];
+	destination[5] = ((int16_t) data[11] << 8) | data[10];
+	destination[6] = ((int16_t) data[13] << 8) | data[12];
 }
