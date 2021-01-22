@@ -12,7 +12,6 @@
 
 /* Includes */
 #include <stdint.h>
-#include "i2c.h"
 
 /* Definitions */
 #define return_if_fail(cond) \
@@ -26,28 +25,21 @@
 		return (val);                 \
 	}
 
+/* Data Structures */
+typedef void (*delay_func_t)(uint32_t);
+typedef int32_t (*i2c_write_func_t)(uint16_t, uint16_t, uint16_t, uint8_t*,
+                                    uint16_t);
+typedef int32_t (*i2c_read_func_t)(uint16_t, uint16_t, uint16_t, uint8_t*,
+                                   uint16_t);
+
 /* Function Prototypes */
-inline __attribute__((always_inline))  HAL_StatusTypeDef i2c_write_byte(
-    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr, uint8_t data)
-{
-	return HAL_I2C_Mem_Write(hi2c, addr << 1, sub_addr, 1, &data, 1,
-	                         HAL_MAX_DELAY);
-}
-inline __attribute__((always_inline))  uint8_t i2c_read_byte(
-    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr)
-{
-	uint8_t temp;
-
-	HAL_I2C_Mem_Read(hi2c, addr << 1, sub_addr, 1, &temp, 1, HAL_MAX_DELAY);
-
-	return temp;
-}
-inline __attribute__((always_inline))  HAL_StatusTypeDef i2c_read(
-    I2C_HandleTypeDef *hi2c, uint16_t addr, uint16_t sub_addr, uint8_t *data,
-    uint16_t len)
-{
-	return HAL_I2C_Mem_Read(hi2c, addr << 1, sub_addr, 1, data, len,
-	                        HAL_MAX_DELAY);
-}
+int32_t i2c_read_byte(i2c_read_func_t read, uint16_t dev_addr, uint16_t addr,
+                      uint8_t *byte);
+int32_t i2c_write_byte(i2c_write_func_t write, uint16_t dev_addr, uint16_t addr,
+                       uint8_t byte);
+int32_t i2c_read(i2c_read_func_t read, uint16_t dev_addr, uint16_t addr,
+                 uint8_t *data, uint16_t len);
+int32_t i2c_write(i2c_write_func_t write, uint16_t dev_addr, uint16_t addr,
+                  uint8_t *data, uint16_t len);
 
 #endif /* EM7180_COMMON_h */

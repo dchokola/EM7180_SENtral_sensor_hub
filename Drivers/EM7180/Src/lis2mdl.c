@@ -37,20 +37,21 @@ void lis2mdl_init(lis2mdl_t *lis2mdl, uint8_t m_odr)
 void lis2mdl_config(lis2mdl_t *lis2mdl, I2C_HandleTypeDef *hi2c)
 {
 	// enable temperature compensation (bit 7 == 1), continuous mode (bits 0:1 == 00)
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A,
-	               0x80 | lis2mdl->m_odr << 2);
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A,
+	                      0x80 | lis2mdl->m_odr << 2);
 
 	// enable low pass filter (bit 0 == 1), set to ODR/4
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_B, 0x01);
 
 	// enable data ready on interrupt pin (bit 0 == 1), enable block data read (bit 4 == 1)
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, 0x01 | 0x10);
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C,
+	                      0x01 | 0x10);
 
 }
 
 uint8_t lis2mdl_chip_id_get(I2C_HandleTypeDef *hi2c)
 {
-	uint8_t c = i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_WHO_AM_I);
+	uint8_t c = broken_i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_WHO_AM_I);
 
 	return c;
 }
@@ -58,25 +59,30 @@ uint8_t lis2mdl_chip_id_get(I2C_HandleTypeDef *hi2c)
 void lis2mdl_reset(I2C_HandleTypeDef *hi2c)
 {
 	// reset device
-	uint8_t temp = i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A);
+	uint8_t temp = broken_i2c_read_byte(hi2c, LIS2MDL_ADDRESS,
+	                                    LIS2MDL_CFG_REG_A);
 
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x20); // Set bit 5 to 1 to reset LIS2MDL
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A,
+	                      temp | 0x20); // Set bit 5 to 1 to reset LIS2MDL
 	HAL_Delay(1);
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A, temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_A,
+	                      temp | 0x40); // Set bit 6 to 1 to boot LIS2MDL
 	HAL_Delay(100); // Wait for all registers to reset
 }
 
 uint8_t lis2mdl_status(I2C_HandleTypeDef *hi2c)
 {
 	// Read the status register of the altimeter  
-	uint8_t temp = i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_STATUS_REG);
+	uint8_t temp = broken_i2c_read_byte(hi2c, LIS2MDL_ADDRESS,
+	                                    LIS2MDL_STATUS_REG);
 	return temp;
 }
 
 void lis2mdl_data_get(I2C_HandleTypeDef *hi2c, int16_t *destination)
 {
 	uint8_t data[6];  // x/y/z mag register data stored here
-	i2c_read(hi2c, LIS2MDL_ADDRESS, (0x80 | LIS2MDL_OUTX_L_REG), data, 8); // Read the 6 raw data registers into data array
+	broken_i2c_read(hi2c, LIS2MDL_ADDRESS, (0x80 | LIS2MDL_OUTX_L_REG), data,
+	                8); // Read the 6 raw data registers into data array
 
 	destination[0] = ((int16_t) data[1] << 8) | data[0]; // Turn the MSB and LSB into a signed 16-bit value
 	destination[1] = ((int16_t) data[3] << 8) | data[2];
@@ -167,8 +173,8 @@ void lis2mdl_self_test(I2C_HandleTypeDef *hi2c)
 	magNom[1] = (float) sum[1] / 50.0f;
 	magNom[2] = (float) sum[2] / 50.0f;
 
-	uint8_t c = i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C);
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c | 0x02); // enable self test
+	uint8_t c = broken_i2c_read_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C);
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c | 0x02); // enable self test
 	HAL_Delay(100); // let mag respond
 
 	sum[0] = 0;
@@ -187,7 +193,7 @@ void lis2mdl_self_test(I2C_HandleTypeDef *hi2c)
 	magTest[1] = (float) sum[1] / 50.0f;
 	magTest[2] = (float) sum[2] / 50.0f;
 
-	i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c); // return to previous settings/normal mode
+	broken_i2c_write_byte(hi2c, LIS2MDL_ADDRESS, LIS2MDL_CFG_REG_C, c); // return to previous settings/normal mode
 	HAL_Delay(100); // let mag respond
 
 	/* Serial.println("Mag Self Test:"); */

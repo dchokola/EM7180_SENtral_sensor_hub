@@ -40,30 +40,32 @@ void lsm6dsm_init(lsm6dsm_t *lsm6dsm, uint8_t ascale, uint8_t gscale,
 
 void lsm6dsm_config(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL,
-	               lsm6dsm->a_odr << 4 | lsm6dsm->ascale << 2);
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL1_XL,
+	                      lsm6dsm->a_odr << 4 | lsm6dsm->ascale << 2);
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G,
-	               lsm6dsm->g_odr << 4 | lsm6dsm->gscale << 2);
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL2_G,
+	                      lsm6dsm->g_odr << 4 | lsm6dsm->gscale << 2);
 
-	uint8_t temp = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+	uint8_t temp = broken_i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
 	// enable block update (bit 6 = 1), auto-increment registers (bit 2 = 1)
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x40 | 0x04);
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C,
+	                      temp | 0x40 | 0x04);
 	// by default, interrupts active HIGH, push pull, little endian data
 	// (can be changed by writing to bits 5, 4, and 1, resp to above register)
 
 	// enable accel LP2 (bit 7 = 1), set LP2 tp ODR/9 (bit 6 = 1), enable input_composite (bit 3) for low noise
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL, 0x80 | 0x40 | 0x08);
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL8_XL,
+	                      0x80 | 0x40 | 0x08);
 
 	// interrupt handling
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40); // enable significant motion interrupts on INT1
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03); // enable accel/gyro data ready interrupts on INT2
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_DRDY_PULSE_CFG, 0x80); // latch interrupt until data read
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT1_CTRL, 0x40); // enable significant motion interrupts on INT1
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_INT2_CTRL, 0x03); // enable accel/gyro data ready interrupts on INT2
 }
 
 uint8_t lsm6dsm_chip_id_get(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
-	uint8_t c = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
+	uint8_t c = broken_i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_WHO_AM_I);
 
 	return c;
 }
@@ -128,9 +130,9 @@ float lsm6dsm_gres_get(lsm6dsm_t *lsm6dsm)
 void lsm6dsm_reset(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 {
 	// reset device
-	uint8_t temp = i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
+	uint8_t temp = broken_i2c_read_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C);
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL3_C, temp | 0x01); // Set bit 0 to 1 to reset LSM6DSM
 	HAL_Delay(100); // Wait for all registers to reset
 }
 
@@ -152,35 +154,35 @@ void lsm6dsm_self_test(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c)
 	gyroNom[1] = temp[2];
 	gyroNom[2] = temp[3];
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x01); // positive accel self test
 	HAL_Delay(100); // let accel respond
 	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	accelPTest[0] = temp[4];
 	accelPTest[1] = temp[5];
 	accelPTest[2] = temp[6];
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x03); // negative accel self test
 	HAL_Delay(100); // let accel respond
 	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	accelNTest[0] = temp[4];
 	accelNTest[1] = temp[5];
 	accelNTest[2] = temp[6];
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x04); // positive gyro self test
 	HAL_Delay(100); // let gyro respond
 	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	gyroPTest[0] = temp[1];
 	gyroPTest[1] = temp[2];
 	gyroPTest[2] = temp[3];
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x0C); // negative gyro self test
 	HAL_Delay(100); // let gyro respond
 	lsm6dsm_read_data(lsm6dsm, hi2c, temp);
 	gyroNTest[0] = temp[1];
 	gyroNTest[1] = temp[2];
 	gyroNTest[2] = temp[3];
 
-	i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
+	broken_i2c_write_byte(hi2c, LSM6DSM_ADDRESS, LSM6DSM_CTRL5_C, 0x00); // normal mode
 	HAL_Delay(100); // let accel and gyro respond
 
 	/* Serial.println("Accel Self Test:"); */
@@ -280,7 +282,7 @@ static void lsm6dsm_read_data(lsm6dsm_t *lsm6dsm, I2C_HandleTypeDef *hi2c,
 {
 	uint8_t data[14];  // x/y/z accel register data stored here
 
-	i2c_read(hi2c, LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, data, 14); // Read the 14 raw data registers into data array
+	broken_i2c_read(hi2c, LSM6DSM_ADDRESS, LSM6DSM_OUT_TEMP_L, data, 14); // Read the 14 raw data registers into data array
 	destination[0] = ((int16_t) data[1] << 8) | data[0]; // Turn the MSB and LSB into a signed 16-bit value
 	destination[1] = ((int16_t) data[3] << 8) | data[2];
 	destination[2] = ((int16_t) data[5] << 8) | data[4];
