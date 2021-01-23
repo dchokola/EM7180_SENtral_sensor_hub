@@ -272,7 +272,7 @@ em7180_status_t em7180_tempdata_get(em7180_t *em7180, int16_t *destination)
 	return ret ? EM7180_BAD_COMM : EM7180_OK;
 }
 
-/* FIXME: haven't explored the usagge/usefulness of these yet: */
+/* FIXME: haven't explored the usage/usefulness of these yet: */
 #if(0)
 uint8_t em7180_status(em7180_t *em7180)
 {
