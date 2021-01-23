@@ -15,10 +15,9 @@
  */
 
 /* Includes */
-#include <stdint.h>
+#include <imu_common.h>
+#include <lis2mdl.h>
 #include <stddef.h>
-#include "em7180_common.h"
-#include "lis2mdl.h"
 
 /* Definitions */
 /*

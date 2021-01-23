@@ -16,8 +16,8 @@
 #define EM7180_H_
 
 /* Includes */
+#include <imu_common.h>
 #include <stdint.h>
-#include "em7180_common.h"
 
 /* Definitions */
 #define EM7180_OK       (0)

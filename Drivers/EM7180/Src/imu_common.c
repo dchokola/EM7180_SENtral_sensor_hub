@@ -6,8 +6,8 @@
  */
 
 /* Includes */
+#include <imu_common.h>
 #include <stdint.h>
-#include "em7180_common.h"
 
 /* Function Definitions */
 

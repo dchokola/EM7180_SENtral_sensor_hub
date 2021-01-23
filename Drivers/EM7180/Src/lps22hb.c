@@ -15,10 +15,9 @@
  */
 
 /* Includes */
-#include <stdint.h>
+#include <imu_common.h>
+#include <lps22hb.h>
 #include <stddef.h>
-#include "em7180_common.h"
-#include "lps22hb.h"
 
 /* Definitions */
 /*

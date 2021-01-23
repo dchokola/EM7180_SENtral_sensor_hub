@@ -18,6 +18,7 @@
 #define LIS2MDL_h
 
 /* Includes */
+#include <imu_common.h>
 #include <stdint.h>
 
 /* Definitions */

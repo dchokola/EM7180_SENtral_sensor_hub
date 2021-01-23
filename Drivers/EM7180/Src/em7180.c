@@ -13,10 +13,10 @@
  */
 
 /* Includes */
+#include <em7180.h>
+#include <imu_common.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "em7180_common.h"
-#include "em7180.h"
 
 /* Definitions */
 /*

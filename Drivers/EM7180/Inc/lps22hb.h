@@ -18,6 +18,7 @@
 #define LPS22HB_h
 
 /* Includes */
+#include <imu_common.h>
 #include <stdint.h>
 
 /* Definitions */

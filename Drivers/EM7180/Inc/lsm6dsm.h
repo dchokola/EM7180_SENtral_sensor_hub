@@ -18,6 +18,7 @@
 #define LSM6DSM_h
 
 /* Includes */
+#include <imu_common.h>
 #include <stdint.h>
 
 /* Definitions */
